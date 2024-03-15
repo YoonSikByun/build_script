@@ -1,0 +1,1 @@
+pip install apache-airflow-client==2.2.0

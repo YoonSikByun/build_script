@@ -789,7 +789,8 @@ webserver:
 
 # Airflow Triggerer Config
 triggerer:
-  enabled: true
+  # enabled: true
+  enabled: false
   # Number of airflow triggerers in the deployment
   replicas: 1
 
@@ -1093,7 +1094,8 @@ pgbouncer:
 
 # Configuration for the redis provisioned by the chart
 redis:
-  enabled: true
+  # enabled: true
+  enabled: false
   terminationGracePeriodSeconds: 600
 
   # Create ServiceAccount
@@ -1248,7 +1250,9 @@ config:
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
   # Authentication backend used for the experimental API
   api:
-    auth_backend: airflow.api.auth.backend.deny_all
+    #auth_backend: airflow.api.auth.backend.deny_all
+    # auth_backend: airflow.api.auth.backend.default
+    auth_backend: airflow.api.auth.backend.basic_auth
   logging:
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
     colored_console_log: 'False'

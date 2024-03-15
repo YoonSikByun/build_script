@@ -307,7 +307,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  webserver-secret-key: "UlVaak5uWjFZelZ1Y1V4d01IYzJObkJEWW01NmVFOUxVSFpaYTJ0T1FrYz0="
+  webserver-secret-key: "U1RsNlV6TXdiRFZWVG5CdU5GTkNWVFJXZVU1RlRVNVdaV0pQZFZsTlNtdz0="
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -344,7 +344,7 @@ data:
   # These are system-specified config overrides.
   airflow.cfg: |-
     [api]
-    auth_backend = airflow.api.auth.backend.deny_all
+    auth_backend = airflow.api.auth.backend.basic_auth
     
     [celery]
     worker_concurrency = 16
@@ -920,7 +920,7 @@ spec:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
         checksum/result-backend-secret: 74e3e99feee51248d44224665d60fab543dd6b25ba95f04e6fcb0e5758342056
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/airflow-config: 518bb7723d1c5f96c6243321f7c20baaf68b0571f562a280f11cb4693305a4c4
+        checksum/airflow-config: 9f2484d01ea8de13d47b1b94736019c821bdd161493c2a29c4363160627bdb9d
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1204,245 +1204,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
 ---
-# Source: airflow/templates/triggerer/triggerer-deployment.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Triggerer Deployment
-#################################
-kind: Deployment
-apiVersion: apps/v1
-metadata:
-  name: apache-airflow-triggerer
-  labels:
-    tier: airflow
-    component: triggerer
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      tier: airflow
-      component: triggerer
-      release: apache-airflow
-  strategy:
-    rollingUpdate:
-      maxSurge: 100%
-      maxUnavailable: 50%
-  template:
-    metadata:
-      labels:
-        tier: airflow
-        component: triggerer
-        release: apache-airflow
-      annotations:
-        checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
-        checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/airflow-config: 518bb7723d1c5f96c6243321f7c20baaf68b0571f562a280f11cb4693305a4c4
-        checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
-        checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-    spec:
-      nodeSelector:
-        {}
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  component: triggerer
-              topologyKey: kubernetes.io/hostname
-            weight: 100
-      tolerations:
-        []
-      terminationGracePeriodSeconds: 60
-      restartPolicy: Always
-      serviceAccountName: apache-airflow-triggerer
-      securityContext:
-        runAsUser: 50000
-        fsGroup: 0
-      initContainers:
-        - name: wait-for-airflow-migrations
-          resources:
-            {}
-          image: apache/airflow:2.2.1
-          imagePullPolicy: IfNotPresent
-          args:
-          
-            
-            - python
-            - -c
-            - |
-                  import airflow
-                  import logging
-                  import os
-                  import time
-          
-                  from alembic.config import Config
-                  from alembic.runtime.migration import MigrationContext
-                  from alembic.script import ScriptDirectory
-          
-                  from airflow import settings
-          
-                  package_dir = os.path.abspath(os.path.dirname(airflow.__file__))
-                  directory = os.path.join(package_dir, 'migrations')
-                  config = Config(os.path.join(package_dir, 'alembic.ini'))
-                  config.set_main_option('script_location', directory)
-                  config.set_main_option('sqlalchemy.url', settings.SQL_ALCHEMY_CONN.replace('%', '%%'))
-                  script_ = ScriptDirectory.from_config(config)
-          
-                  timeout=60
-          
-                  with settings.engine.connect() as connection:
-                      context = MigrationContext.configure(connection)
-                      ticker = 0
-                      while True:
-                          source_heads = set(script_.get_heads())
-          
-                          db_heads = set(context.get_current_heads())
-                          if source_heads == db_heads:
-                              break
-          
-                          if ticker >= timeout:
-                              raise TimeoutError("There are still unapplied migrations after {} seconds.".format(ticker))
-                          ticker += 1
-                          time.sleep(1)
-                          logging.info('Waiting for migrations... %s second(s)', ticker)
-          envFrom:
-          
-            []
-          env:
-          
-            # Dynamically created environment variables
-            # Dynamically created secret envs
-            
-            # Extra env
-          
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key
-      containers:
-        - name: triggerer
-          image: apache/airflow:2.2.1
-          imagePullPolicy: IfNotPresent
-          args: 
-            - bash
-            - -c
-            - exec airflow triggerer
-          resources:
-            
-            {}
-          volumeMounts:
-            - name: logs
-              mountPath: "/opt/airflow/logs"
-            - name: config
-              mountPath: "/opt/airflow/airflow.cfg"
-              subPath: airflow.cfg
-              readOnly: true
-            - name: config
-              mountPath: "/opt/airflow/config/airflow_local_settings.py"
-              subPath: airflow_local_settings.py
-              readOnly: true
-          envFrom:
-          
-            []
-          env:
-          
-            # Dynamically created environment variables
-            # Dynamically created secret envs
-            
-            # Extra env
-          
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key
-          livenessProbe:
-            initialDelaySeconds: 10
-            timeoutSeconds: 10
-            failureThreshold: 5
-            periodSeconds: 60
-            exec:
-              command:
-              - /entrypoint
-              - python
-              - -Wignore
-              - -c
-              - |
-                import os
-                os.environ['AIRFLOW__CORE__LOGGING_LEVEL'] = 'ERROR'
-                os.environ['AIRFLOW__LOGGING__LOGGING_LEVEL'] = 'ERROR'
-
-                from airflow.jobs.triggerer_job import TriggererJob
-                from airflow.utils.db import create_session
-                from airflow.utils.net import get_hostname
-                import sys
-
-                with create_session() as session:
-                    job = session.query(TriggererJob).filter_by(hostname=get_hostname()).order_by(
-                        TriggererJob.latest_heartbeat.desc()).limit(1).first()
-
-                sys.exit(0 if job.is_alive() else 1)
-      volumes:
-        - name: config
-          configMap:
-            name: apache-airflow-airflow-config
-        - name: logs
-          emptyDir: {}
----
 # Source: airflow/templates/webserver/webserver-deployment.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -1502,8 +1263,8 @@ spec:
       annotations:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/webserver-secret-key: 411a9cb992ca8be2785d21cae0bd5300f33cf642b657eaef436e9ea007094c5c
-        checksum/airflow-config: 518bb7723d1c5f96c6243321f7c20baaf68b0571f562a280f11cb4693305a4c4
+        checksum/webserver-secret-key: 1812faaf54eebc8b16c2cb306127967d598233f9958c54fb7adfc3b8f6c6ca33
+        checksum/airflow-config: 9f2484d01ea8de13d47b1b94736019c821bdd161493c2a29c4363160627bdb9d
         checksum/webserver-config: 4a2281a4e3ed0cc5e89f07aba3c1bb314ea51c17cb5d2b41e9b045054a6b5c72
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
@@ -2664,6 +2425,28 @@ spec:
 ## Airflow StatsD NetworkPolicy
 #################################
 ---
+# Source: airflow/templates/triggerer/triggerer-deployment.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Triggerer Deployment
+#################################
+---
 # Source: airflow/templates/webserver/webserver-ingress.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -2833,7 +2616,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "VHpOdGJYbFdNVGRGVVV4cFVXdEhlVWxMZGxWWU4ybEJhbTV4YjBKU01UST0="
+  fernet-key: "T0hOUlUyVXlZVzlHVm1sNk5WWllaMWQxT1ZrNVVIUlRXR2xuZVhWTFZGaz0="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -2863,26 +2646,6 @@ data:
 ################################
 ## Airflow Redis Password Secret
 #################################
-# If passwordSecretName is not set, we will either use the set password, or use the generated one
-kind: Secret
-apiVersion: v1
-metadata:
-  name: apache-airflow-redis-password
-  labels:
-    tier: airflow
-    component: redis
-    release: apache-airflow
-    chart: airflow
-    heritage: Helm
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
-    "helm.sh/hook-weight": "0"
-type: Opaque
-data:
-  password: "aUZlNFpicVRnbQ=="
----
-# Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
 ## Airflow Redis Connection Secret
 ##################################
@@ -2902,7 +2665,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86aUZlNFpicVRnbUBhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
+  connection: "JSFzKDxuaWw+KQ=="
 ---
 # Source: airflow/templates/jobs/create-user-job.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
