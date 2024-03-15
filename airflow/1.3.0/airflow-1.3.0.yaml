@@ -1,36 +1,4 @@
 ---
-# Source: airflow/templates/flower/flower-serviceaccount.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-######################################
-## Airflow Flower ServiceAccount
-######################################
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: apache-airflow-flower
-  labels:
-    tier: airflow
-    component: flower
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
----
 # Source: airflow/templates/jobs/create-user-job-serviceaccount.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -91,38 +59,6 @@ metadata:
   labels:
     tier: airflow
     component: run-airflow-migrations
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
----
-# Source: airflow/templates/redis/redis-serviceaccount.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-######################################
-## Airflow Redis ServiceAccount
-######################################
-kind: ServiceAccount
-apiVersion: v1
-metadata:
-  name: apache-airflow-redis
-  labels:
-    tier: airflow
-    component: redis
     release: apache-airflow
     chart: "airflow-1.3.0"
     heritage: Helm
@@ -337,40 +273,6 @@ type: Opaque
 data:
   connection: "cG9zdGdyZXNxbDovL3Bvc3RncmVzOnBvc3RncmVzQGFwYWNoZS1haXJmbG93LXBvc3RncmVzcWwuZGVmYXVsdDo1NDMyL3Bvc3RncmVzP3NzbG1vZGU9ZGlzYWJsZQ=="
 ---
-# Source: airflow/templates/secrets/result-backend-connection-secret.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Result Backend Secret
-#################################
-kind: Secret
-apiVersion: v1
-metadata:
-  name: apache-airflow-airflow-result-backend
-  labels:
-    tier: airflow
-    release: apache-airflow
-    chart: airflow
-    heritage: Helm
-type: Opaque
-data:
-  connection: "ZGIrcG9zdGdyZXNxbDovL3Bvc3RncmVzOnBvc3RncmVzQGFwYWNoZS1haXJmbG93LXBvc3RncmVzcWw6NTQzMi9wb3N0Z3Jlcz9zc2xtb2RlPWRpc2FibGU="
----
 # Source: airflow/templates/secrets/webserver-secret-key-secret.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -405,7 +307,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  webserver-secret-key: "ZEZsUmNrNU1WR3hFYW5CcVMyc3lSbE5DVVdNeldXaHNVVWt6VmpGRlkyOD0="
+  webserver-secret-key: "UlVaak5uWjFZelZ1Y1V4d01IYzJObkJEWW01NmVFOUxVSFpaYTJ0T1FrYz0="
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -453,7 +355,7 @@ data:
     [core]
     colored_console_log = False
     dags_folder = /opt/airflow/dags
-    executor = CeleryExecutor
+    executor = KubernetesExecutor
     load_examples = False
     remote_logging = False
     
@@ -518,6 +420,109 @@ data:
         html=True,
       )
     ]
+  pod_template_file.yaml: |-
+
+    # Licensed to the Apache Software Foundation (ASF) under one
+    # or more contributor license agreements.  See the NOTICE file
+    # distributed with this work for additional information
+    # regarding copyright ownership.  The ASF licenses this file
+    # to you under the Apache License, Version 2.0 (the
+    # "License"); you may not use this file except in compliance
+    # with the License.  You may obtain a copy of the License at
+    #
+    #   http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing,
+    # software distributed under the License is distributed on an
+    # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    # KIND, either express or implied.  See the License for the
+    # specific language governing permissions and limitations
+    # under the License.
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: dummy-name
+      labels:
+        tier: airflow
+        component: worker
+        release: apache-airflow
+    spec:
+      containers:
+        - args: []
+          command: []
+          envFrom:      
+            []
+          env:
+            - name: AIRFLOW__CORE__EXECUTOR
+              value: LocalExecutor      
+            # Hard Coded Airflow Envs
+            - name: AIRFLOW__CORE__FERNET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: apache-airflow-fernet-key
+                  key: fernet-key
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: apache-airflow-airflow-metadata
+                  key: connection
+            - name: AIRFLOW_CONN_AIRFLOW_DB
+              valueFrom:
+                secretKeyRef:
+                  name: apache-airflow-airflow-metadata
+                  key: connection
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: apache-airflow-webserver-secret-key
+                  key: webserver-secret-key      
+            # Dynamically created environment variables
+            # Dynamically created secret envs
+            
+            # Extra env
+          image: apache/airflow:2.2.1
+          imagePullPolicy: IfNotPresent
+          name: base
+          ports: []
+          resources:
+            {}
+          volumeMounts:
+            - mountPath: "/opt/airflow/logs"
+              name: logs
+            - name: config
+              mountPath: "/opt/airflow/airflow.cfg"
+              subPath: airflow.cfg
+              readOnly: true
+            - name: config
+              mountPath: "/opt/airflow/config/airflow_local_settings.py"
+              subPath: airflow_local_settings.py
+              readOnly: true
+      hostNetwork: false
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 50000
+        fsGroup: 0
+      nodeSelector: 
+        {}
+      affinity: 
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  component: worker
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      tolerations: 
+        []
+      serviceAccountName: apache-airflow-worker
+      volumes:
+      - emptyDir: {}
+        name: logs
+      - configMap:
+          name: apache-airflow-airflow-config
+        name: config
 ---
 # Source: airflow/templates/rbac/pod-launcher-role.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -667,6 +672,9 @@ roleRef:
   name: apache-airflow-pod-launcher-role
 subjects:
   - kind: ServiceAccount
+    name: apache-airflow-scheduler
+    namespace: default
+  - kind: ServiceAccount
     name: apache-airflow-worker
     namespace: default
 ---
@@ -764,92 +772,6 @@ spec:
     app.kubernetes.io/instance: apache-airflow
     role: primary
 ---
-# Source: airflow/templates/flower/flower-service.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Flower Service Component
-#################################
-kind: Service
-apiVersion: v1
-metadata:
-  name: apache-airflow-flower
-  labels:
-    tier: airflow
-    component: flower
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-spec:
-  type: ClusterIP
-  selector:
-    tier: airflow
-    component: flower
-    release: apache-airflow
-  ports:
-  
-    -
-      name: flower-ui
-      port: 5555
----
-# Source: airflow/templates/redis/redis-service.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Redis Service
-#################################
-kind: Service
-apiVersion: v1
-metadata:
-  name: apache-airflow-redis
-  labels:
-    tier: airflow
-    component: redis
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-spec:
-  type: ClusterIP
-  selector:
-    tier: airflow
-    component: redis
-    release: apache-airflow
-  ports:
-    - name: redis-db
-      protocol: TCP
-      port: 6379
-      targetPort: 6379
----
 # Source: airflow/templates/statsd/statsd-service.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -943,187 +865,6 @@ spec:
       name: airflow-ui
       port: 8080
 ---
-# Source: airflow/templates/workers/worker-service.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Worker Service
-#################################
-kind: Service
-apiVersion: v1
-metadata:
-  name: apache-airflow-worker
-  labels:
-    tier: airflow
-    component: worker
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-spec:
-  clusterIP: None
-  selector:
-    tier: airflow
-    component: worker
-    release: apache-airflow
-  ports:
-    - name: worker-logs
-      protocol: TCP
-      port: 8793
-      targetPort: 8793
----
-# Source: airflow/templates/flower/flower-deployment.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Flower Deployment
-#################################
-kind: Deployment
-apiVersion: apps/v1
-metadata:
-  name: apache-airflow-flower
-  labels:
-    tier: airflow
-    component: flower
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-  annotations:
-    checksum/airflow-config: afd19a036f1c425842679f7e1320f1179a689e7973bcdd4f2cb4187121d8f87b
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      tier: airflow
-      component: flower
-      release: apache-airflow
-  template:
-    metadata:
-      labels:
-        tier: airflow
-        component: flower
-        release: apache-airflow
-    spec:
-      nodeSelector:
-        {}
-      affinity:
-        {}
-      tolerations:
-        []
-      serviceAccountName: apache-airflow-flower
-      restartPolicy: Always
-      securityContext:
-        runAsUser: 50000
-      containers:
-        - name: flower
-          image: apache/airflow:2.2.1
-          imagePullPolicy: IfNotPresent
-          args: 
-            - bash
-            - -c
-            - |-
-              exec \
-              airflow celery flower
-          resources:
-            {}
-          volumeMounts:
-            - name: config
-              mountPath: "/opt/airflow/airflow.cfg"
-              subPath: airflow.cfg
-              readOnly: true
-          ports:
-            - name: flower-ui
-              containerPort: 5555
-          livenessProbe:
-            failureThreshold: 10
-            exec:
-              command:
-                - curl
-                - localhost:5555
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          readinessProbe:
-            failureThreshold: 10
-            exec:
-              command:
-                - curl
-                - localhost:5555
-            initialDelaySeconds: 10
-            periodSeconds: 5
-          env:          
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection          
-            # Dynamically created environment variables
-            # Dynamically created secret envs
-            # Extra env
-      volumes:
-        - name: config
-          configMap:
-            name: apache-airflow-airflow-config
----
 # Source: airflow/templates/scheduler/scheduler-deployment.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -1177,9 +918,9 @@ spec:
         release: apache-airflow
       annotations:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
-        checksum/result-backend-secret: e2b257e19ff7ff00f764af982f6cc432e79f575fe5c1993c0e48dcfa4780a31e
+        checksum/result-backend-secret: 74e3e99feee51248d44224665d60fab543dd6b25ba95f04e6fcb0e5758342056
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/airflow-config: afd19a036f1c425842679f7e1320f1179a689e7973bcdd4f2cb4187121d8f87b
+        checksum/airflow-config: 518bb7723d1c5f96c6243321f7c20baaf68b0571f562a280f11cb4693305a4c4
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1254,6 +995,7 @@ spec:
           env:          
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env          
             # Hard Coded Airflow Envs
             - name: AIRFLOW__CORE__FERNET_KEY
@@ -1276,21 +1018,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
       containers:
         # Always run the main scheduler container.
         - name: scheduler
@@ -1305,6 +1032,7 @@ spec:
           env:          
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env          
             # Hard Coded Airflow Envs
             - name: AIRFLOW__CORE__FERNET_KEY
@@ -1327,21 +1055,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
           livenessProbe:
             initialDelaySeconds: 10
             timeoutSeconds: 10
@@ -1542,7 +1255,7 @@ spec:
       annotations:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/airflow-config: afd19a036f1c425842679f7e1320f1179a689e7973bcdd4f2cb4187121d8f87b
+        checksum/airflow-config: 518bb7723d1c5f96c6243321f7c20baaf68b0571f562a280f11cb4693305a4c4
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1620,6 +1333,7 @@ spec:
           
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env
           
             # Hard Coded Airflow Envs
@@ -1643,21 +1357,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
       containers:
         - name: triggerer
           image: apache/airflow:2.2.1
@@ -1687,6 +1386,7 @@ spec:
           
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env
           
             # Hard Coded Airflow Envs
@@ -1710,21 +1410,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
           livenessProbe:
             initialDelaySeconds: 10
             timeoutSeconds: 10
@@ -1817,8 +1502,8 @@ spec:
       annotations:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/webserver-secret-key: f65f1ce044775400dff7b658fa4d6cf76eeb9c02819da94761ab65f2af9e4b00
-        checksum/airflow-config: afd19a036f1c425842679f7e1320f1179a689e7973bcdd4f2cb4187121d8f87b
+        checksum/webserver-secret-key: 411a9cb992ca8be2785d21cae0bd5300f33cf642b657eaef436e9ea007094c5c
+        checksum/airflow-config: 518bb7723d1c5f96c6243321f7c20baaf68b0571f562a280f11cb4693305a4c4
         checksum/webserver-config: 4a2281a4e3ed0cc5e89f07aba3c1bb314ea51c17cb5d2b41e9b045054a6b5c72
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
@@ -1892,6 +1577,7 @@ spec:
           env:          
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env          
             # Hard Coded Airflow Envs
             - name: AIRFLOW__CORE__FERNET_KEY
@@ -1914,21 +1600,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
       containers:
         - name: webserver
           image: apache/airflow:2.2.1
@@ -1976,6 +1647,7 @@ spec:
           env:          
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env          
             # Hard Coded Airflow Envs
             - name: AIRFLOW__CORE__FERNET_KEY
@@ -1998,21 +1670,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
       volumes:
         - name: config
           configMap:
@@ -2161,350 +1818,6 @@ spec:
           requests:
             storage: "8Gi"
 ---
-# Source: airflow/templates/redis/redis-statefulset.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Redis StatefulSet
-#################################
-kind: StatefulSet
-apiVersion: apps/v1
-metadata:
-  name: apache-airflow-redis
-  labels:
-    tier: airflow
-    component: redis
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-spec:
-  serviceName: apache-airflow-redis
-  selector:
-    matchLabels:
-      tier: airflow
-      component: redis
-      release: apache-airflow
-  template:
-    metadata:
-      labels:
-        tier: airflow
-        component: redis
-        release: apache-airflow
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-    spec:
-      nodeSelector:
-        {}
-      affinity:
-        {}
-      tolerations:
-        []
-      serviceAccountName: apache-airflow-redis
-      containers:
-        - name: redis
-          image: redis:6-buster
-          imagePullPolicy: IfNotPresent
-          command: ["/bin/sh"]
-          resources:
-            {}
-          args: ["-c", "redis-server --requirepass ${REDIS_PASSWORD}"]
-          ports:
-            - name: redis-db
-              containerPort: 6379
-          volumeMounts:
-            - name: redis-db
-              mountPath: /data
-          env:
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-redis-password
-                  key: password
-  volumeClaimTemplates:
-    - metadata:
-        name: redis-db
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
----
-# Source: airflow/templates/workers/worker-deployment.yaml
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-################################
-## Airflow Worker Deployment
-#################################
-kind: StatefulSet
-apiVersion: apps/v1
-metadata:
-  name: apache-airflow-worker
-  labels:
-    tier: airflow
-    component: worker
-    release: apache-airflow
-    chart: "airflow-1.3.0"
-    heritage: Helm
-spec:
-  serviceName: apache-airflow-worker
-  replicas: 1
-  selector:
-    matchLabels:
-      tier: airflow
-      component: worker
-      release: apache-airflow
-  template:
-    metadata:
-      labels:
-        tier: airflow
-        component: worker
-        release: apache-airflow
-      annotations:
-        checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
-        checksum/result-backend-secret: e2b257e19ff7ff00f764af982f6cc432e79f575fe5c1993c0e48dcfa4780a31e
-        checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/webserver-secret-key: ba86181196f5512ea03c8544a72ae8f38caed0bd61aa18843ee6087639388fd5
-        checksum/airflow-config: afd19a036f1c425842679f7e1320f1179a689e7973bcdd4f2cb4187121d8f87b
-        checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
-        checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
-    spec:
-      nodeSelector:
-        {}
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  component: worker
-              topologyKey: kubernetes.io/hostname
-            weight: 100
-      tolerations:
-        []
-      terminationGracePeriodSeconds: 600
-      restartPolicy: Always
-      serviceAccountName: apache-airflow-worker
-      securityContext:
-        runAsUser: 50000
-        fsGroup: 0
-      initContainers:
-        - name: wait-for-airflow-migrations
-          resources:
-            {}
-          image: apache/airflow:2.2.1
-          imagePullPolicy: IfNotPresent
-          args:          
-            
-            - python
-            - -c
-            - |
-                  import airflow
-                  import logging
-                  import os
-                  import time
-          
-                  from alembic.config import Config
-                  from alembic.runtime.migration import MigrationContext
-                  from alembic.script import ScriptDirectory
-          
-                  from airflow import settings
-          
-                  package_dir = os.path.abspath(os.path.dirname(airflow.__file__))
-                  directory = os.path.join(package_dir, 'migrations')
-                  config = Config(os.path.join(package_dir, 'alembic.ini'))
-                  config.set_main_option('script_location', directory)
-                  config.set_main_option('sqlalchemy.url', settings.SQL_ALCHEMY_CONN.replace('%', '%%'))
-                  script_ = ScriptDirectory.from_config(config)
-          
-                  timeout=60
-          
-                  with settings.engine.connect() as connection:
-                      context = MigrationContext.configure(connection)
-                      ticker = 0
-                      while True:
-                          source_heads = set(script_.get_heads())
-          
-                          db_heads = set(context.get_current_heads())
-                          if source_heads == db_heads:
-                              break
-          
-                          if ticker >= timeout:
-                              raise TimeoutError("There are still unapplied migrations after {} seconds.".format(ticker))
-                          ticker += 1
-                          time.sleep(1)
-                          logging.info('Waiting for migrations... %s second(s)', ticker)
-          envFrom:          
-            []
-          env:          
-            # Dynamically created environment variables
-            # Dynamically created secret envs
-            # Extra env          
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
-      containers:
-        - name: worker
-          image: apache/airflow:2.2.1
-          imagePullPolicy: IfNotPresent
-          args: 
-            - bash
-            - -c
-            - |-
-              exec \
-              airflow celery worker
-          resources:
-            {}
-          ports:
-            - name: worker-logs
-              containerPort: 8793
-          volumeMounts:
-            - name: logs
-              mountPath: "/opt/airflow/logs"
-            - name: config
-              mountPath: "/opt/airflow/airflow.cfg"
-              subPath: airflow.cfg
-              readOnly: true
-            - name: config
-              mountPath: "/opt/airflow/config/airflow_local_settings.py"
-              subPath: airflow_local_settings.py
-              readOnly: true
-          envFrom:          
-            []
-          env:
-            # Only signal the main process, not the process group, to make Warm Shutdown work properly
-            - name: DUMB_INIT_SETSID
-              value: "0"          
-            # Dynamically created environment variables
-            # Dynamically created secret envs
-            # Extra env          
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
-        - name: worker-log-groomer
-          image: apache/airflow:2.2.1
-          imagePullPolicy: IfNotPresent
-          args: 
-            - bash
-            - /clean-logs
-          
-          env:
-            - name: AIRFLOW__LOG_RETENTION_DAYS
-              value: "15"
-          resources:
-            {}
-          volumeMounts:
-            - name: logs
-              mountPath: "/opt/airflow/logs"
-      volumes:
-        - name: config
-          configMap:
-            name: apache-airflow-airflow-config
-  volumeClaimTemplates:
-    - metadata:
-        name: logs
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 100Gi
----
 # Source: airflow/templates/check-values.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -2651,6 +1964,28 @@ spec:
 # specific language governing permissions and limitations
 # under the License.
 ---
+# Source: airflow/templates/flower/flower-deployment.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Flower Deployment
+#################################
+---
 # Source: airflow/templates/flower/flower-ingress.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -2694,6 +2029,50 @@ spec:
 ################################
 ## Airflow Flower NetworkPolicy
 #################################
+---
+# Source: airflow/templates/flower/flower-service.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Flower Service Component
+#################################
+---
+# Source: airflow/templates/flower/flower-serviceaccount.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+######################################
+## Airflow Flower ServiceAccount
+######################################
 ---
 # Source: airflow/templates/limitrange.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -2931,6 +2310,72 @@ spec:
 
 ################################
 ## Airflow Redis NetworkPolicy
+#################################
+---
+# Source: airflow/templates/redis/redis-service.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Redis Service
+#################################
+---
+# Source: airflow/templates/redis/redis-serviceaccount.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+######################################
+## Airflow Redis ServiceAccount
+######################################
+---
+# Source: airflow/templates/redis/redis-statefulset.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Redis StatefulSet
 #################################
 ---
 # Source: airflow/templates/resourcequota.yaml
@@ -3175,6 +2620,28 @@ spec:
 ## Registry Secret
 #################################
 ---
+# Source: airflow/templates/secrets/result-backend-connection-secret.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Result Backend Secret
+#################################
+---
 # Source: airflow/templates/statsd/statsd-networkpolicy.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -3241,6 +2708,28 @@ spec:
 ## Airflow Webserver NetworkPolicy
 #################################
 ---
+# Source: airflow/templates/workers/worker-deployment.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Worker Deployment
+#################################
+---
 # Source: airflow/templates/workers/worker-kedaautoscaler.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -3285,6 +2774,28 @@ spec:
 ## Airflow Worker NetworkPolicy
 #################################
 ---
+# Source: airflow/templates/workers/worker-service.yaml
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+################################
+## Airflow Worker Service
+#################################
+---
 # Source: airflow/templates/secrets/fernetkey-secret.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -3322,7 +2833,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "U0V0VGVHY3dTalJ6VW1oR1duZG1XV05tYjA0NFozZEROR2RLTmtkek5HST0="
+  fernet-key: "VHpOdGJYbFdNVGRGVVV4cFVXdEhlVWxMZGxWWU4ybEJhbTV4YjBKU01UST0="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -3369,7 +2880,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "OUQzYktxVFpnVA=="
+  password: "aUZlNFpicVRnbQ=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -3391,7 +2902,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86OUQzYktxVFpnVEBhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
+  connection: "cmVkaXM6Ly86aUZlNFpicVRnbUBhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
 ---
 # Source: airflow/templates/jobs/create-user-job.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -3472,6 +2983,7 @@ spec:
           env:          
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env          
             # Hard Coded Airflow Envs
             - name: AIRFLOW__CORE__FERNET_KEY
@@ -3494,21 +3006,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
           volumeMounts:
             - name: config
               mountPath: "/opt/airflow/airflow.cfg"
@@ -3585,6 +3082,7 @@ spec:
           env:          
             # Dynamically created environment variables
             # Dynamically created secret envs
+            
             # Extra env          
             # Hard Coded Airflow Envs
             - name: AIRFLOW__CORE__FERNET_KEY
@@ -3607,21 +3105,6 @@ spec:
                 secretKeyRef:
                   name: apache-airflow-webserver-secret-key
                   key: webserver-secret-key
-            - name: AIRFLOW__CELERY__CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-airflow-result-backend
-                  key: connection
-            - name: AIRFLOW__CELERY__BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-broker-url
-                  key: connection
           volumeMounts:
             - name: config
               mountPath: "/opt/airflow/airflow.cfg"

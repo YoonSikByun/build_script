@@ -1,0 +1,75 @@
+출처 : [https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
+
+1. helm 레파지토리정보 등록
+
+> # helm repo add prometheus-community [https://prometheus-community.github.io/helm-charts](https://prometheus-community.github.io/helm-charts)
+# helm repo update
+> 
+1. helm chart 설치
+
+ - 온라인
+
+> # helm install [RELEASE_NAME] prometheus-community/kube-prometheus-stack
+> 
+
+ - on-premise 설치 위한 yaml 생성
+
+> values.yaml 를 다운로드 받아 원하는 설정으로 변경한다.
+# wget [https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml](https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml)
+
+# helm template --namespace monitoring prometheus-stack -f values.yaml prometheus-community/kube-prometheus-stack > prometheus-stack.yaml
+> 
+1. CRDs 설치
+
+ - 다운로드
+
+> wgetf [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml)
+wget [https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml](https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.60.1/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml)
+> 
+
+ - 설치
+
+> kubectl apply --server-side -f monitoring.coreos.com_alertmanagerconfigs.yaml
+kubectl apply --server-side -f monitoring.coreos.com_alertmanagers.yaml
+kubectl apply --server-side -f monitoring.coreos.com_podmonitors.yaml
+kubectl apply --server-side -f monitoring.coreos.com_probes.yaml
+kubectl apply --server-side -f monitoring.coreos.com_prometheuses.yaml
+kubectl apply --server-side -f monitoring.coreos.com_prometheusrules.yaml
+kubectl apply --server-side -f monitoring.coreos.com_servicemonitors.yaml
+kubectl apply --server-side -f monitoring.coreos.com_thanosrulers.yaml
+> 
+1. Prometheus stack  실행
+
+> # kubectl apply -f prometheus-stack.yaml
+> 
+
+ - minikube에서 grafana 서비스 호스트에 노출
+
+> # minikube -n monitoring service prometheus-stack-grafana --url
+> 
+> - prometheus-stack-grafana 서비스의 터널을 시작하는 중
+> |------------|--------------------------|-------------|------------------------|
+> | NAMESPACE | NAME | TARGET PORT | URL |
+> |------------|--------------------------|-------------|------------------------|
+> | monitoring | prometheus-stack-grafana | | [http://127.0.0.1:62878](http://127.0.0.1:62878/) |
+> |------------|--------------------------|-------------|------------------------|
+> [http://127.0.0.1:62878](http://127.0.0.1:62878/)
+> ! Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+1. 삭제
+
+> # kubectl delete -f prometheus-stack.yaml
+# kubectl delete crd [alertmanagerconfigs.monitoring.coreos.com](http://alertmanagerconfigs.monitoring.coreos.com/)
+# kubectl delete crd [alertmanagers.monitoring.coreos.com](http://alertmanagers.monitoring.coreos.com/)
+# kubectl delete crd [podmonitors.monitoring.coreos.com](http://podmonitors.monitoring.coreos.com/)
+# kubectl delete crd [probes.monitoring.coreos.com](http://probes.monitoring.coreos.com/)
+# kubectl delete crd [prometheuses.monitoring.coreos.com](http://prometheuses.monitoring.coreos.com/)
+# kubectl delete crd [prometheusrules.monitoring.coreos.com](http://prometheusrules.monitoring.coreos.com/)
+# kubectl delete crd [servicemonitors.monitoring.coreos.com](http://servicemonitors.monitoring.coreos.com/)
+# kubectl delete crd [thanosrulers.monitoring.coreos.com](http://thanosrulers.monitoring.coreos.com/)
+>

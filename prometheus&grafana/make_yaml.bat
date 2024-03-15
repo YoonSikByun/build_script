@@ -1,0 +1,1 @@
+helm template --namespace monitoring prometheus-stack -f values.yaml prometheus-community/kube-prometheus-stack > prometheus-stack.yaml

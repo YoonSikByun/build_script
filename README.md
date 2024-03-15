@@ -1,6 +1,3 @@
-# airflow-yaml
-airflow-yaml
-
 # 쿠버네티스에 Airflow 설치
 
 ## 참고 사이트
@@ -35,4 +32,5 @@ airflow-yaml
             > 
     3. On-line
         
-        helm install airflow apache-airflow/airflow --version 1.3.0 -f values.yaml -n airflow —create-namespace
+        > helm install airflow apache-airflow/airflow --version 1.3.0 -f values.yaml -n airflow —create-namespace
+        >
