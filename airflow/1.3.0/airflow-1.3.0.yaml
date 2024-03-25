@@ -307,7 +307,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  webserver-secret-key: "U1RsNlV6TXdiRFZWVG5CdU5GTkNWVFJXZVU1RlRVNVdaV0pQZFZsTlNtdz0="
+  webserver-secret-key: "WVRSeWMyMW9TSFJTUzB4TVVsZDFVVzh5YTIwd1JYbFhiV2d3VTAxRlZ6Zz0="
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -354,9 +354,13 @@ data:
     
     [core]
     colored_console_log = False
+    compress_serialized_dags = false
     dags_folder = /opt/airflow/dags
     executor = KubernetesExecutor
     load_examples = False
+    max_num_rendered_ti_fields_per_task = 30
+    min_serialized_dag_fetch_interval = 10
+    min_serialized_dag_update_interval = 30
     remote_logging = False
     
     [elasticsearch]
@@ -920,7 +924,7 @@ spec:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
         checksum/result-backend-secret: 74e3e99feee51248d44224665d60fab543dd6b25ba95f04e6fcb0e5758342056
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/airflow-config: 9f2484d01ea8de13d47b1b94736019c821bdd161493c2a29c4363160627bdb9d
+        checksum/airflow-config: d18da17627307c07cdbe903e8baba244997ac4879fa426f085b001a8ef823941
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1263,8 +1267,8 @@ spec:
       annotations:
         checksum/metadata-secret: ae27649f1f64f6e3ffc16aa28d6576a0f730d2dcd79a330562a6a31864fc24b4
         checksum/pgbouncer-config-secret: da52bd1edfe820f0ddfacdebb20a4cc6407d296ee45bcb500a6407e2261a5ba2
-        checksum/webserver-secret-key: 1812faaf54eebc8b16c2cb306127967d598233f9958c54fb7adfc3b8f6c6ca33
-        checksum/airflow-config: 9f2484d01ea8de13d47b1b94736019c821bdd161493c2a29c4363160627bdb9d
+        checksum/webserver-secret-key: f96a51ec39b68dd5ecc8e1509d8e8ce3a44a0de1f989b11ace2c7695c317bf7c
+        checksum/airflow-config: d18da17627307c07cdbe903e8baba244997ac4879fa426f085b001a8ef823941
         checksum/webserver-config: 4a2281a4e3ed0cc5e89f07aba3c1bb314ea51c17cb5d2b41e9b045054a6b5c72
         checksum/extra-configmaps: 2e44e493035e2f6a255d08f8104087ff10d30aef6f63176f1b18f75f73295598
         checksum/extra-secrets: bb91ef06ddc31c0c5a29973832163d8b0b597812a793ef911d33b622bc9d1655
@@ -2616,7 +2620,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "T0hOUlUyVXlZVzlHVm1sNk5WWllaMWQxT1ZrNVVIUlRXR2xuZVhWTFZGaz0="
+  fernet-key: "ZUhCM1dHaEZNRVZzWlRZNWRucDNXR2QxVERCTFZUWm1hMEZoTVV4ak4yYz0="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
