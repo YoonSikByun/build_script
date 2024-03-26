@@ -1346,7 +1346,7 @@ dags:
     # access mode of the persistent volume
     accessMode: ReadWriteOnce
     ## the name of an existing PVC to use
-    existingClaim:
+    existingClaim: pvc-host
   gitSync:
     enabled: false
 
