@@ -61,7 +61,7 @@ configuration = airflow_client.client.Configuration(
 
 # Make sure in the [core] section, the  `load_examples` config is set to True in your airflow.cfg
 # or AIRFLOW__CORE__LOAD_EXAMPLES environment variable set to True
-DAG_ID = "example_bash_operator"
+DAG_ID = "tutorial"
 
 # Enter a context with an instance of the API client
 with airflow_client.client.ApiClient(configuration) as api_client:
@@ -71,7 +71,9 @@ with airflow_client.client.ApiClient(configuration) as api_client:
     dag_api_instance = dag_api.DAGApi(api_client)
     try:
         api_response = dag_api_instance.get_dags()
+        print('[get_dags] -------------------------')
         print(api_response)
+        print('------------------------------------')
     except airflow_client.client.OpenApiException as e:
         print(f"[red]Exception when calling DagAPI->get_dags: {e}\n")
         errors = True
@@ -81,7 +83,9 @@ with airflow_client.client.ApiClient(configuration) as api_client:
     print("[blue]Getting Tasks for a DAG")
     try:
         api_response = dag_api_instance.get_tasks(DAG_ID)
+        print('[get_tasks] -------------------------')
         print(api_response)
+        print('-------------------------------------')
     except airflow_client.client.exceptions.OpenApiException as e:
         print(f"[red]Exception when calling DagAPI->get_tasks: {e}\n")
         errors = True

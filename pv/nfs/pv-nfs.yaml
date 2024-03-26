@@ -8,5 +8,5 @@ spec:
   accessModes:
     - ReadWriteMany #여러 클라이언트를 위한 읽기 쓰기 마운트
   nfs:
-    server: nfs.svc.cluster.local # nfs서버의 ip주소
+    server: 10.1.0.141 # nfs서버의 ip주소
     path: /share #nfs서버에서 공유한 디렉토리명
