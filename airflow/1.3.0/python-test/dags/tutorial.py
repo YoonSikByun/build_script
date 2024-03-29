@@ -76,12 +76,12 @@ with DAG(
     # t1, t2 and t3 are examples of tasks created by instantiating operators
     # [START basic_task]
     t1 = BashOperator(
-        task_id='print_date',
+        task_id='t1',
         bash_command='date',
     )
 
     t2 = BashOperator(
-        task_id='sleep',
+        task_id='t2',
         depends_on_past=False,
         bash_command='sleep 5',
         retries=3,
@@ -118,12 +118,35 @@ with DAG(
     )
 
     t3 = BashOperator(
-        task_id='templated',
+        task_id='t3',
+        depends_on_past=False,
+        bash_command=templated_command,
+        params={'my_param': 'Parameter I passed in'},
+    )
+    
+    t4 = BashOperator(
+        task_id='t4',
+        depends_on_past=False,
+        bash_command=templated_command,
+        params={'my_param': 'Parameter I passed in'},
+    )
+    
+    t5 = BashOperator(
+        task_id='t5',
+        depends_on_past=False,
+        bash_command=templated_command,
+        params={'my_param': 'Parameter I passed in'},
+    )
+
+    t6 = BashOperator(
+        task_id='t6',
         depends_on_past=False,
         bash_command=templated_command,
         params={'my_param': 'Parameter I passed in'},
     )
     # [END jinja_template]
 
-    t1 >> [t2, t3]
+    # t1 >> [t2, t3] >> t4 >> [t5, t6]
+    [t1, t2] >> t3
+    t2 >> t4 >> [t5, t6]
 # [END tutorial]
