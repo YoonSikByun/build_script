@@ -1,0 +1,1 @@
+kubectl port-forward svc/apache-airflow-webserver 5000:8080
