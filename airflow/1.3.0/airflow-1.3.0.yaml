@@ -900,6 +900,28 @@ spec:
       name: airflow-ui
       port: 8080
 ---
+kind: Service
+apiVersion: v1
+metadata:
+  name: apache-airflow-webserver-nodeport
+  labels:
+    tier: airflow
+    component: webserver
+    release: apache-airflow
+    chart: "airflow-1.3.0"
+    heritage: Helm
+spec:
+  type: NodePort
+  selector:
+    tier: airflow
+    component: webserver
+    release: apache-airflow
+  ports:
+  
+    - name: airflow-ui
+      port: 8080
+      nodePort: 30100
+---
 # Source: airflow/templates/scheduler/scheduler-deployment.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
