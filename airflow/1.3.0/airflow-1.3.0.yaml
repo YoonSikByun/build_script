@@ -784,6 +784,29 @@ spec:
     app.kubernetes.io/instance: apache-airflow
     role: primary
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apache-airflow-postgresql-nodeport
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-10.5.3
+    app.kubernetes.io/instance: apache-airflow
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: 30000
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: apache-airflow
+    role: primary
+---
 # Source: airflow/templates/statsd/statsd-service.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
