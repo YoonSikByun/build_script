@@ -20,11 +20,7 @@
         - values.yaml 다운로드
             
             > helm show values apache-airflow/airflow --version 1.3.0 > values.yaml
-            > 
-        - values.yaml 다운로드
-            
-            > helm show values apache-airflow/airflow --version 1.3.0 > values.yaml
-            > 
+
     2. OnPremise
         - 설치 yaml 생성
             

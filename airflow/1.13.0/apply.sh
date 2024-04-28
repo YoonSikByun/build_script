@@ -1,0 +1,1 @@
+kubectl apply -f ./airflow-1.13.0-airflow-2.8.2.yaml
