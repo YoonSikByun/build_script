@@ -2345,11 +2345,11 @@ config:
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
 
     min_serialized_dag_update_interval: 1
-    min_serialized_dag_fetch_interval: 1
+    min_serialized_dag_fetch_interval: 2
     # max_num_rendered_ti_fields_per_task: 30
     # compress_serialized_dags: False
 
-  auth_backends:
+  api:
     auth_backend: airflow.api.auth.backend.basic_auth
 
   logging:

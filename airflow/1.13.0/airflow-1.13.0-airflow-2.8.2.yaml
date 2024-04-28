@@ -165,7 +165,7 @@ metadata:
 data:
   # These are system-specified config overrides.
   airflow.cfg: |-
-    [auth_backends]
+    [api]
     auth_backend = airflow.api.auth.backend.basic_auth
     
     [celery]
