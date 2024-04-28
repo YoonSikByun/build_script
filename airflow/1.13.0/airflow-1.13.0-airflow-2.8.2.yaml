@@ -146,7 +146,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  webserver-secret-key: "Tm14VVlubEhkRlZRVVUwNU1WbzJkSE4yVG1oTWEzWTRlVTVpUjJGQ1Mydz0="
+  webserver-secret-key: "Y1ZGR1dFSlhSa3BTV21saFdtZzRaMk40V1dWWlpVMHpTMVpoY2pOdFF6RT0="
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
 ################################
@@ -177,7 +177,6 @@ data:
     
     [core]
     colored_console_log = False
-    compress_serialized_dags = false
     dags_folder = /opt/airflow/dags
     executor = KubernetesExecutor
     load_examples = False
@@ -351,9 +350,9 @@ data:
       - name: dags
         persistentVolumeClaim:
           claimName: pvc-host
-      - emptyDir:
-          {}
-        name: logs
+      - name: logs
+        persistentVolumeClaim:
+          claimName: pvc-host-airflow-logs
       - configMap:
           name: apache-airflow-config
         name: config
@@ -654,7 +653,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: apache-airflow-postgresql
+  name: apache-airflow-postgresql-nodeport
   namespace: "default"
   labels:
     app.kubernetes.io/instance: apache-airflow
@@ -735,15 +734,15 @@ spec:
       name: airflow-ui
       port: 8080
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: apache-airflow-webserver-nodeport
   labels:
     tier: airflow
     component: webserver
     release: apache-airflow
-    chart: "airflow-1.3.0"
+    chart: "airflow-1.13.0"
     heritage: Helm
 spec:
   type: NodePort
@@ -753,7 +752,8 @@ spec:
     release: apache-airflow
   ports:
   
-    - name: airflow-ui
+    -
+      name: airflow-ui
       port: 8080
       nodePort: 30100
 ---
@@ -795,7 +795,7 @@ spec:
         checksum/metadata-secret: 4a22279a7d4e753a079c8b33619352ecb517c4c7fd40c6bf25a340f6fc356c4b
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: ae32518be83cb4e46088453aeebe7e69a08d259df24c8ba1ea4a0a9f7a93b987
+        checksum/airflow-config: ff8bad064bdd8b4d6d751cd291c8fb34c037d54079b53418857eb170075eef38
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1004,8 +1004,8 @@ spec:
           persistentVolumeClaim:
             claimName: pvc-host
         - name: logs
-          emptyDir:
-            {}
+          persistentVolumeClaim:
+            claimName: pvc-host-airflow-logs
 ---
 # Source: airflow/templates/statsd/statsd-deployment.yaml
 ################################
@@ -1131,8 +1131,8 @@ spec:
       annotations:
         checksum/metadata-secret: 4a22279a7d4e753a079c8b33619352ecb517c4c7fd40c6bf25a340f6fc356c4b
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/webserver-secret-key: d8ac50b9897eee7352128f90492f8f706bb7c6c9e3a5f0d65c7a3ecaa3b3404b
-        checksum/airflow-config: ae32518be83cb4e46088453aeebe7e69a08d259df24c8ba1ea4a0a9f7a93b987
+        checksum/webserver-secret-key: 72acfa5fb836b45c1c03cd568f4be768f9420f02543d4733445fc6da2d39f555
+        checksum/airflow-config: ff8bad064bdd8b4d6d751cd291c8fb34c037d54079b53418857eb170075eef38
         checksum/webserver-config: 2f3fdfd294a37094d2abee43b2b09888a5c195ee03414996bf99a4681658af94
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
@@ -1246,6 +1246,8 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            - name: logs
+              mountPath: "/opt/airflow/logs"
           ports:
             - name: airflow-ui
               containerPort: 8080
@@ -1315,6 +1317,9 @@ spec:
         - name: config
           configMap:
             name: apache-airflow-config
+        - name: logs
+          persistentVolumeClaim:
+            claimName: pvc-host-airflow-logs
 ---
 # Source: airflow/charts/postgresql/templates/primary/statefulset.yaml
 apiVersion: apps/v1
@@ -1768,7 +1773,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "TVhSVFRURjRkbWRyWTJ4UVEyTlZaRGxxV0dFek5tTmtSV3gxU2xGeGVsYz0="
+  fernet-key: "YmtsU2RVWTVVVUZDVm01TVIwaHJlR1F4VUhNd1JXeFlRekk1VTNwNFRrcz0="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 # We will create these secrets (if necessary) _even if_ we aren't
@@ -1798,7 +1803,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "M0h2U2tRWmZQbw=="
+  password: "VXNVQklrcFVCMg=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -1820,7 +1825,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86M0h2U2tRWmZQb0BhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
+  connection: "cmVkaXM6Ly86VXNVQklrcFVCMkBhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
 ---
 # Source: airflow/templates/jobs/create-user-job.yaml
 ################################
