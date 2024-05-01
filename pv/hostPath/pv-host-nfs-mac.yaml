@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-host-nfs
+  namespace: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+    # - ReadWriteMany #여러 클라이언트를 위한 읽기 쓰기 마운트
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /Users/yoonsikbyun/Documents/nfs
