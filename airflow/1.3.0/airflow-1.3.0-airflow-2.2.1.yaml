@@ -535,6 +535,41 @@ data:
       - configMap:
           name: apache-airflow-airflow-config
         name: config
+
+  jupyterlab.yaml: |-
+
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: jupyter-lab
+      labels:
+        tier: airflow
+        component: worker
+        release: mlstudio
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: jupyter-lab
+          image: mlstudio/jupyterlab4.1.8:latest
+          imagePullPolicy: IfNotPresent
+          workingDir: /home/mlstudio
+          args: []
+          command: []
+          resources: {}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/mlstudio/config/mlstudio-confog.json
+              subPath: mlstudio-confog.json
+              readOnly: true
+            - name: config
+              mountPath: /opt/mlstudio/config/mlstudio-confog2.json
+              subPath: mlstudio-confog2.json
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: mlstudio-config
 ---
 # Source: airflow/templates/rbac/pod-launcher-role.yaml
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -1144,6 +1179,10 @@ spec:
             - name: config
               mountPath: /opt/airflow/pod_templates/pod_template_file.yaml
               subPath: pod_template_file.yaml
+              readOnly: true
+            - name: config
+              mountPath: /opt/airflow/pod_templates/jupyterlab.yaml
+              subPath: jupyterlab.yaml
               readOnly: true
             - name: logs
               mountPath: "/opt/airflow/logs"

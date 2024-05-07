@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jupyter-lab
+  labels:
+    tier: airflow
+    component: worker
+    release: mlstudio
+spec:
+  restartPolicy: Never
+  containers:
+    - name: jupyter-lab
+      image: mlstudio/jupyterlab4.1.8:latest
+      imagePullPolicy: IfNotPresent
+      workingDir: /home/mlstudio
+      args: []
+      command: []
+      resources: {}
+      volumeMounts:
+        - name: config
+          mountPath: /opt/mlstudio/config/mlstudio-confog.json
+          subPath: mlstudio-confog.json
+          readOnly: true
+        - name: config
+          mountPath: /opt/mlstudio/config/mlstudio-confog2.json
+          subPath: mlstudio-confog2.json
+          readOnly: true
+  volumes:
+    - name: config
+      configMap:
+        name: mlstudio-config
