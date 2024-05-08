@@ -258,141 +258,142 @@ data:
       )
     ]
 
+  # pod_template_file.yaml: |-
 
-  pod_template_file.yaml: |-
-
-    ---
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: placeholder-name
-      labels:
-        tier: airflow
-        component: worker
-        release: apache-airflow
-    spec:
-      containers:
-        - envFrom:      
-            []
-          env:
-            - name: AIRFLOW__CORE__EXECUTOR
-              value: LocalExecutor      
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW_HOME
-              value: /opt/airflow
-            # For Airflow <2.3, backward compatibility; moved to [database] in 2.3
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key      
-            # Dynamically created environment variables
-            # Dynamically created secret envs
+  #   ---
+  #   apiVersion: v1
+  #   kind: Pod
+  #   metadata:
+  #     name: placeholder-name
+  #     labels:
+  #       tier: airflow
+  #       component: worker
+  #       release: apache-airflow
+  #   spec:
+  #     containers:
+  #       - envFrom:      
+  #           []
+  #         env:
+  #           - name: AIRFLOW__CORE__EXECUTOR
+  #             value: LocalExecutor      
+  #           # Hard Coded Airflow Envs
+  #           - name: AIRFLOW__CORE__FERNET_KEY
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-fernet-key
+  #                 key: fernet-key
+  #           - name: AIRFLOW_HOME
+  #             value: /opt/airflow
+  #           # For Airflow <2.3, backward compatibility; moved to [database] in 2.3
+  #           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-metadata
+  #                 key: connection
+  #           - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-metadata
+  #                 key: connection
+  #           - name: AIRFLOW_CONN_AIRFLOW_DB
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-metadata
+  #                 key: connection
+  #           - name: AIRFLOW__WEBSERVER__SECRET_KEY
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-webserver-secret-key
+  #                 key: webserver-secret-key      
+  #           # Dynamically created environment variables
+  #           # Dynamically created secret envs
             
-            # Extra env      
-          image: apache/airflow:2.8.2
-          imagePullPolicy: IfNotPresent
-          securityContext: 
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-          name: base
-          resources:
-            {}
-          volumeMounts:
-            - mountPath: "/opt/airflow/logs"
-              name: logs
-            - name: config
-              mountPath: "/opt/airflow/airflow.cfg"
-              subPath: airflow.cfg
-              readOnly: true
-            - name: config
-              mountPath: "/opt/airflow/config/airflow_local_settings.py"
-              subPath: airflow_local_settings.py
-              readOnly: true
-            - name: dags
-              mountPath: /opt/airflow/dags
-              readOnly: False
-      restartPolicy: Never
-      securityContext: 
-        runAsUser: 50000
-        fsGroup: 0
-      nodeSelector:
-        {}
-      affinity:
-        {}
-      terminationGracePeriodSeconds: 600
-      tolerations:
-        []
-      topologySpreadConstraints:
-        []
-      serviceAccountName: apache-airflow-worker
-      volumes:
-      - name: dags
-        persistentVolumeClaim:
-          claimName: pvc-host
-      - name: logs
-        persistentVolumeClaim:
-          claimName: pvc-host-airflow-logs
-      - configMap:
-          name: apache-airflow-config
-        name: config
+  #           # Extra env      
+  #         image: apache/airflow:2.8.2
+  #         imagePullPolicy: IfNotPresent
+  #         securityContext: 
+  #           allowPrivilegeEscalation: false
+  #           capabilities:
+  #             drop:
+  #               - ALL
+  #         name: base
+  #         resources:
+  #           {}
+  #         volumeMounts:
+  #           - name: host-mount
+  #             mountPath: "/opt/airflow/logs"
+  #             subPath: airflow/logs
+  #           - name: config
+  #             mountPath: "/opt/airflow/airflow.cfg"
+  #             subPath: airflow.cfg
+  #             readOnly: true
+  #           - name: config
+  #             mountPath: "/opt/airflow/config/airflow_local_settings.py"
+  #             subPath: airflow_local_settings.py
+  #             readOnly: true
+  #           - name: host-mount
+  #             mountPath: /opt/airflow/dags
+  #             subPath: airflow/dags
+  #             readOnly: False
+  #     restartPolicy: Never
+  #     securityContext: 
+  #       runAsUser: 50000
+  #       fsGroup: 0
+  #     nodeSelector:
+  #       {}
+  #     affinity:
+  #       {}
+  #     terminationGracePeriodSeconds: 600
+  #     tolerations:
+  #       []
+  #     topologySpreadConstraints:
+  #       []
+  #     serviceAccountName: apache-airflow-worker
+  #     volumes:
+  #       - name: host-mount
+  #         persistentVolumeClaim:
+  #           claimName: pvc-host
+  #       - name: config
+  #         configMap:
+  #           name: apache-airflow-config
 
-  jupyterlab.yaml: |-
+  # jupyterlab.yaml: |-
 
-    ---
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: jupyter-lab
-      labels:
-        tier: airflow
-        component: worker
-        release: mlstudio
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: jupyter-lab
-          image: mlstudio/jupyterlab4.1.8:latest
-          imagePullPolicy: IfNotPresent
-          workingDir: /home/mlstudio
-          args: []
-          command: []
-          resources: {}
-          volumeMounts:
-            - name: config
-              mountPath: /opt/mlstudio/config/mlstudio-confog.json
-              subPath: mlstudio-confog.json
-              readOnly: true
-            - name: config
-              mountPath: /opt/mlstudio/config/mlstudio-confog2.json
-              subPath: mlstudio-confog2.json
-              readOnly: true
-      volumes:
-        - name: config
-          configMap:
-            name: mlstudio-config
+  #   ---
+  #   apiVersion: v1
+  #   kind: Pod
+  #   metadata:
+  #     name: jupyter-lab
+  #     labels:
+  #       tier: airflow
+  #       component: worker
+  #       release: mlstudio
+  #   spec:
+  #     restartPolicy: Never
+  #     containers:
+  #       - name: jupyter-lab
+  #         image: mlstudio/jupyterlab4.1.8:latest
+  #         imagePullPolicy: IfNotPresent
+  #         workingDir: /opt/mlstudio/source
+  #         args: []
+  #         command: []
+  #         resources: {}
+  #         volumeMounts:
+  #           - name: config
+  #             mountPath: /opt/mlstudio/config/mlstudio-confog.json
+  #             subPath: mlstudio-confog.json
+  #             readOnly: true
+  #           - name: config
+  #             mountPath: /opt/mlstudio/config/mlstudio-confog2.json
+  #             subPath: mlstudio-confog2.json
+  #             readOnly: true
+  #     volumes:
+  #       - name: host-mount
+  #         persistentVolumeClaim:
+  #           claimName: pvc-host
+  #       - name: config
+  #         configMap:
+  #           name: mlstudio-config
 ---
 # Source: airflow/templates/configmaps/statsd-configmap.yaml
 ################################
@@ -995,16 +996,13 @@ spec:
           resources:
             {}
           volumeMounts:
-            - name: config
-              mountPath: /opt/airflow/pod_templates/pod_template_file.yaml
-              subPath: pod_template_file.yaml
+            - name: host-mount
+              mountPath: /opt/airflow/pod_templates
+              subPath: airflow/pod_templates
               readOnly: true
-            - name: config
-              mountPath: /opt/airflow/pod_templates/jupyterlab.yaml
-              subPath: jupyterlab.yaml
-              readOnly: true
-            - name: logs
+            - name: host-mount
               mountPath: "/opt/airflow/logs"
+              subPath: airflow/logs
             - name: config
               mountPath: "/opt/airflow/airflow.cfg"
               subPath: airflow.cfg
@@ -1013,8 +1011,9 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
-            - name: dags
-              mountPath: /opt/airflow/dags
+            - name: host-mount
+              mountPath: "/opt/airflow/dags"
+              subPath: airflow/dags
               readOnly: False
         - name: scheduler-log-groomer
           resources:
@@ -1035,18 +1034,24 @@ spec:
             - name: AIRFLOW_HOME
               value: "/opt/airflow"
           volumeMounts:
-            - name: logs
+            - name: host-mount
               mountPath: "/opt/airflow/logs"
+              subPath: airflow/logs
+            # - name: logs
+            #   mountPath: "/opt/airflow/logs"
       volumes:
         - name: config
           configMap:
             name: apache-airflow-config
-        - name: dags
+        - name: host-mount
           persistentVolumeClaim:
             claimName: pvc-host
-        - name: logs
-          persistentVolumeClaim:
-            claimName: pvc-host-airflow-logs
+        # - name: dags
+        #   persistentVolumeClaim:
+        #     claimName: pvc-host
+        # - name: logs
+        #   persistentVolumeClaim:
+        #     claimName: pvc-host-airflow-logs
 ---
 # Source: airflow/templates/statsd/statsd-deployment.yaml
 ################################
@@ -1275,9 +1280,9 @@ spec:
           resources:
             {}
           volumeMounts:
-            - name: config
-              mountPath: /opt/airflow/pod_templates/pod_template_file.yaml
-              subPath: pod_template_file.yaml
+            - name: host-mount
+              mountPath: /opt/airflow/pod_templates
+              subPath: airflow/pod_templates
               readOnly: true
             - name: config
               mountPath: "/opt/airflow/airflow.cfg"
@@ -1287,8 +1292,11 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
-            - name: logs
+            # - name: logs
+            #   mountPath: "/opt/airflow/logs"
+            - name: host-mount
               mountPath: "/opt/airflow/logs"
+              subPath: airflow/logs
           ports:
             - name: airflow-ui
               containerPort: 8080
@@ -1358,9 +1366,12 @@ spec:
         - name: config
           configMap:
             name: apache-airflow-config
-        - name: logs
+        - name: host-mount
           persistentVolumeClaim:
-            claimName: pvc-host-airflow-logs
+            claimName: pvc-host
+        # - name: logs
+        #   persistentVolumeClaim:
+        #     claimName: pvc-host-airflow-logs
 ---
 # Source: airflow/charts/postgresql/templates/primary/statefulset.yaml
 apiVersion: apps/v1

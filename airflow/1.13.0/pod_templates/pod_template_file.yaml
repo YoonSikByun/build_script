@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: placeholder-name
+  labels:
+    tier: airflow
+    component: worker
+    release: apache-airflow
+spec:
+  containers:
+    - envFrom:      
+        []
+      env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: LocalExecutor      
+        # Hard Coded Airflow Envs
+        - name: AIRFLOW__CORE__FERNET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: apache-airflow-fernet-key
+              key: fernet-key
+        - name: AIRFLOW_HOME
+          value: /opt/airflow
+        # For Airflow <2.3, backward compatibility; moved to [database] in 2.3
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          valueFrom:
+            secretKeyRef:
+              name: apache-airflow-metadata
+              key: connection
+        - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+          valueFrom:
+            secretKeyRef:
+              name: apache-airflow-metadata
+              key: connection
+        - name: AIRFLOW_CONN_AIRFLOW_DB
+          valueFrom:
+            secretKeyRef:
+              name: apache-airflow-metadata
+              key: connection
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: apache-airflow-webserver-secret-key
+              key: webserver-secret-key      
+        # Dynamically created environment variables
+        # Dynamically created secret envs
+        
+        # Extra env      
+      image: apache/airflow:2.8.2
+      imagePullPolicy: IfNotPresent
+      securityContext: 
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      name: base
+      resources: {}
+      volumeMounts:
+        - name: host-mount
+          mountPath: "/opt/airflow/logs"
+          subPath: airflow/logs
+        - name: config
+          mountPath: "/opt/airflow/airflow.cfg"
+          subPath: airflow.cfg
+          readOnly: true
+        - name: config
+          mountPath: "/opt/airflow/config/airflow_local_settings.py"
+          subPath: airflow_local_settings.py
+          readOnly: true
+        - name: host-mount
+          mountPath: /opt/airflow/dags
+          subPath: airflow/dags
+          readOnly: False
+  restartPolicy: Never
+  securityContext: 
+    runAsUser: 50000
+    fsGroup: 0
+  nodeSelector:
+    {}
+  affinity:
+    {}
+  terminationGracePeriodSeconds: 600
+  tolerations:
+    []
+  topologySpreadConstraints:
+    []
+  serviceAccountName: apache-airflow-worker
+  volumes:
+    - name: host-mount
+      persistentVolumeClaim:
+        claimName: pvc-host
+    - name: config
+      configMap:
+        name: apache-airflow-config

@@ -46,6 +46,7 @@ spec:
           ports:
             - name: jupyter-lab
               containerPort: 8888
+          resources: {}
           volumeMounts:
             - name: config
               mountPath: /opt/mlstudio/config/mlstudio-confog.json
@@ -55,7 +56,26 @@ spec:
               mountPath: /opt/mlstudio/config/mlstudio-confog2.json
               subPath: mlstudio-confog2.json
               readOnly: true
+            - name: host-mount
+              mountPath: "/opt/mlstudio/piplines"
+              subPath: mlstudio/pipelines
+              readOnly: true
+            - name: host-mount
+              mountPath: "/opt/mlstudio/input"
+              subPath: mlstudio/pipelines/pipelienid/nodeid/input
+              readOnly: false
+            - name: host-mount
+              mountPath: "/opt/mlstudio/output"
+              subPath: mlstudio/pipelines/pipelienid/nodeid/output
+              readOnly: false
+            - name: host-mount
+              mountPath: "/opt/mlstudio/source"
+              subPath: mlstudio/pipelines/pipelienid/nodeid/source
+              readOnly: false
       volumes:
         - name: config
           configMap:
             name: mlstudio-config
+        - name: host-mount
+          persistentVolumeClaim:
+            claimName: pvc-host

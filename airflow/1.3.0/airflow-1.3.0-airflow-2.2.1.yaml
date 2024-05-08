@@ -532,9 +532,9 @@ data:
       - name: logs
         persistentVolumeClaim:
           claimName: pvc-host-airflow-logs
-      - configMap:
+      - name: config
+        configMap:
           name: apache-airflow-airflow-config
-        name: config
 
   jupyterlab.yaml: |-
 

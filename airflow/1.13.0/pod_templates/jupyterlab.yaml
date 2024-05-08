@@ -12,7 +12,7 @@ spec:
     - name: jupyter-lab
       image: mlstudio/jupyterlab4.1.8:latest
       imagePullPolicy: IfNotPresent
-      workingDir: /home/mlstudio
+      workingDir: /opt/mlstudio/source
       args: []
       command: []
       resources: {}
@@ -25,26 +25,10 @@ spec:
           mountPath: /opt/mlstudio/config/mlstudio-confog2.json
           subPath: mlstudio-confog2.json
           readOnly: true
-        - name: host-mount
-          mountPath: "/opt/mlstudio/piplines"
-          subPath: mlstudio/pipelines
-          readOnly: true
-        - name: host-mount
-          mountPath: "/opt/mlstudio/input"
-          subPath: mlstudio/pipelines/pipelienid/nodeid/input
-          readOnly: false
-        - name: host-mount
-          mountPath: "/opt/mlstudio/output"
-          subPath: mlstudio/pipelines/pipelienid/nodeid/output
-          readOnly: false
-        - name: host-mount
-          mountPath: "/opt/mlstudio/source"
-          subPath: mlstudio/pipelines/pipelienid/nodeid/source
-          readOnly: false
   volumes:
-    - name: config
-      configMap:
-        name: mlstudio-config
     - name: host-mount
       persistentVolumeClaim:
         claimName: pvc-host
+    - name: config
+      configMap:
+        name: mlstudio-config
