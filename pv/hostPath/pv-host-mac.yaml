@@ -4,8 +4,8 @@ metadata:
   name: pv-host
 spec:
   accessModes:
-    - ReadWriteOnce
-    # - ReadWriteMany #여러 클라이언트를 위한 읽기 쓰기 마운트
+    # - ReadWriteOnce
+    - ReadWriteMany #여러 클라이언트를 위한 읽기 쓰기 마운트
   capacity:
     storage: 1Gi
   hostPath:
