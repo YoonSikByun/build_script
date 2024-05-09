@@ -14,6 +14,36 @@ spec:
       port: 8888
       nodePort: 30110
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jupyter-lab-config
+  labels:
+    app : jupyter-lab
+
+data:
+
+  jupyter_notebook_config.py: |-
+    import os
+
+    c=get_config()
+
+    c.NotebookApp.ip = "0.0.0.0"
+    c.NotebookApp.port = 8888
+    c.NotebookApp.password_required = False
+    c.NotebookApp.terminado_settings = {"shell_command": ["/bin/bash"]}
+    c.NotebookApp.root_dir = "/opt/airflow/source"
+    c.NotebookApp.token = ""
+    #c.NotebookApp.base_url = f'/{os.getenv("HOSTNAME")}-ide/'
+
+    #if os.getenv('MEMORY_LIMIT'):
+        #c.ResourceUseDisplay.mem_limit = int(os.getenv('MEMORY_LIMIT')) * 1*1024*1024
+
+    #if os.getenv('CPU_LIMIT'):
+      #c.ResourceUseDisplay.cpu_limit = int(os.getenv('CPU_LIMIT'))
+      #c.ResourceUseDisplay.trach_cpu_percent = True
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,12 +72,17 @@ spec:
           args:
             - bash
             - -c
-            - jupyter lab --port=8888 --no-browser --ip=0.0.0.0 --allow-root --LabApp.token=''
+            # - jupyter lab --port=8888 --no-browser --ip=0.0.0.0 --allow-root --LabApp.token=''
+            - jupyter lab --no-browser --ip=0.0.0.0 --allow-root
           ports:
             - name: jupyter-lab
               containerPort: 8888
           resources: {}
           volumeMounts:
+            # - name: jupyter-lab-config
+            #   mountPath: "/home/mlstudio/.jupyter/jupyter_notebook_config.py"
+            #   subPath: jupyter_notebook_config.py
+            #   readOnly: false
             - name: config
               mountPath: /opt/mlstudio/config/mlstudio-confog.json
               subPath: mlstudio-confog.json
@@ -73,6 +108,9 @@ spec:
               subPath: mlstudio/pipelines/pipelienid/nodeid/source
               readOnly: false
       volumes:
+        # - name: jupyter-lab-config
+        #   configMap:
+        #     name: jupyter-lab-config
         - name: config
           configMap:
             name: mlstudio-config
