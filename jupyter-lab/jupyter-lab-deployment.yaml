@@ -109,6 +109,10 @@ spec:
               value: "/opt/mlstudio"
             - name: APP_NAME
               value: "jupyter-lab"
+            - name: INPUT_PATH
+              value: "/opt/mlstudio/input"
+            - name: OUTPUT_PATH
+              value: "/opt/mlstudio/output"
             - name: MEMORY_LIMI
               value: "1"
             - name: CPU_LIMIT
@@ -156,6 +160,10 @@ spec:
             - name: host-mount
               mountPath: "/opt/mlstudio/source"
               subPath: mlstudio/pipelines/pipelienid/nodeid/source
+              readOnly: false
+            - name: host-mount
+              mountPath: "/opt/mlstudio/interface"
+              subPath: mlstudio/interface
               readOnly: false
       volumes:
         - name: jupyter-lab-config
