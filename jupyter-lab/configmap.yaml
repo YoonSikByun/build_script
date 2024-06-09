@@ -7,7 +7,7 @@ metadata:
     component: config
 data:
   # These are system-specified config overrides.
-  mlstudio-confog.json: |-
+  mlstudio-config.json: |-
     {
       system-database : {
         ip : '10.10.10.10',
@@ -15,7 +15,7 @@ data:
       }
     }
 
-  mlstudio-confog2.json: |-
+  mlstudio-config2.json: |-
     {
       system-database : {
         ip : '10.10.10.10',

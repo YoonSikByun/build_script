@@ -380,12 +380,12 @@ data:
   #         resources: {}
   #         volumeMounts:
   #           - name: config
-  #             mountPath: /opt/mlstudio/config/mlstudio-confog.json
-  #             subPath: mlstudio-confog.json
+  #             mountPath: /opt/mlstudio/config/mlstudio-config.json
+  #             subPath: mlstudio-config.json
   #             readOnly: true
   #           - name: config
-  #             mountPath: /opt/mlstudio/config/mlstudio-confog2.json
-  #             subPath: mlstudio-confog2.json
+  #             mountPath: /opt/mlstudio/config/mlstudio-config2.json
+  #             subPath: mlstudio-config2.json
   #             readOnly: true
   #     volumes:
   #       - name: host-mount
