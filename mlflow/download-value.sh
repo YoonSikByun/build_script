@@ -1,0 +1,1 @@
+helm show values oci://registry-1.docker.io/bitnamicharts/mlflow --version 1.4.4 > values.yaml

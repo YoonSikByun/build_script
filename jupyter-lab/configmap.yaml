@@ -22,3 +22,31 @@ data:
         port : 1000
       }
     }
+
+  jupyter_lab_config.py: |-
+    import os
+
+    c=get_config()
+
+    c.ServerApp.ip = "0.0.0.0"
+    c.ServerApp.port = 8888
+    c.ServerApp.password_required = False
+    c.ContentsManager.allow_hidden = False
+    c.ServerApp.terminado_settings = {"shell_command": ["/bin/bash"]}
+    c.ServerApp.root_dir = f'{os.getenv("APP_HOME")}/source'
+    c.ServerApp.token = ""
+    c.ServerApp.base_url = f'/{os.getenv("APP_NAME")}/'
+
+    # shutdown the server after no activity for an hour
+    c.ServerApp.shutdown_no_activity_timeout = 60 * 60
+    # shutdown kernels after no activity for 20 minutes
+    c.MappingKernelManager.cull_idle_timeout = 20 * 60
+    # check for idle kernels every two minutes
+    c.MappingKernelManager.cull_interval = 2 * 60
+
+    if os.getenv('MEMORY_LIMIT'):
+      c.ResourceUseDisplay.mem_limit = int(os.getenv('MEMORY_LIMIT')) * 1024*1024*1024
+
+    if os.getenv('CPU_LIMIT'):
+      c.ResourceUseDisplay.cpu_limit = int(os.getenv('CPU_LIMIT'))
+      c.ResourceUseDisplay.track_cpu_percent = True

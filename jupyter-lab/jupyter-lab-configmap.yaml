@@ -16,6 +16,11 @@ data:
     c.ServerApp.password_required = False
     c.ServerApp.terminado_settings = {"shell_command": ["/bin/bash"]}
     c.ServerApp.root_dir = "/opt/airflow/source"
+
+    c.ServerApp.shutdown_no_activity_timeout = 60
+    c.MappingKernelManager.cull_idle_timeout = 30
+    c.MappingKernelManager.cull_interval = 60
+
     c.ServerApp.token = ""
     #c.ServerApp.base_url = f'/{os.getenv("HOSTNAME")}-ide/'
 

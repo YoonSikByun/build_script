@@ -71,6 +71,10 @@ data:
     c.ServerApp.token = ""
     c.ServerApp.base_url = f'/{os.getenv("APP_NAME")}/'
 
+    c.ServerApp.shutdown_no_activity_timeout = 60
+    c.MappingKernelManager.cull_idle_timeout = 30
+    c.MappingKernelManager.cull_interval = 60
+
     if os.getenv('MEMORY_LIMIT'):
       c.ResourceUseDisplay.mem_limit = int(os.getenv('MEMORY_LIMIT')) * 1024*1024*1024
 
