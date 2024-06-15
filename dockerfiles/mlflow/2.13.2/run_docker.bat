@@ -1,0 +1,1 @@
+docker run -p 5050:5000 --name mlflow-server -v /run/desktop/mnt/host/e/mnt/mlflow:/mlflow ghcr.io/mlflow/mlflow:latest mlflow server --host 0.0.0.0

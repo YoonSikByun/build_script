@@ -125,10 +125,10 @@ spec:
           containerPort: 8888
       resources:
         requests:
-          memory: "0.5Gi"
+          memory: "1Gi"
           cpu: "1"
         limits:
-          memory: "0.5Gi"
+          memory: "1Gi"
           cpu: "1"
       volumeMounts:
         - name: jupyter-lab-config
@@ -148,10 +148,6 @@ spec:
           subPath: mlstudio/pipelines
           readOnly: true
         - name: host-mount
-          mountPath: "/opt/mlstudio/input"
-          subPath: mlstudio/pipelines/pipelienid/nodeid/input
-          readOnly: false
-        - name: host-mount
           mountPath: "/opt/mlstudio/output"
           subPath: mlstudio/pipelines/pipelienid/nodeid/output
           readOnly: false
@@ -163,6 +159,11 @@ spec:
           mountPath: "/opt/mlstudio/interface"
           subPath: mlstudio/interface
           readOnly: false
+        - name: host-mount
+          mountPath: "/opt/mlflow/mlruns"
+          subPath: mlflow/mlruns
+          readOnly: false
+
   volumes:
     - name: jupyter-lab-config
       configMap:

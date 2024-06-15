@@ -2,14 +2,14 @@
 # applications.
 FROM mlstudio/python3.11:latest
 
-RUN yum install -y postgresql-libs postgresql-devel
-
 ARG USERNAME=mlstudio
+
 USER $USERNAME
 
 RUN mkdir /home/$USERNAME/.jupyter
+RUN pip3 install mlflow psycopg2==2.9.9
 RUN pip3 install --no-cache-dir matplotlib numpy pandas plotly scikit-learn scipy statsmodels xgboost lightgbm Flask gunicorn \
-    jupyterlab jupyterlab-git jupyter-resource-usage nbdime lckr_jupyterlab_variableinspector mlflow psycopg2
+    jupyterlab jupyterlab-git==0.44.0 jupyterlab-system-monitor nbdime lckr_jupyterlab_variableinspector
 
 ENV PATH="${PATH}:/home/$USERNAME/.local/bin:"
 
