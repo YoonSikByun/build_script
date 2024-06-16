@@ -1,0 +1,27 @@
+affinity: {}
+configuration: null
+fullnameOverride: ""
+image:
+  pullPolicy: Always
+  repository: emberstack/sftp
+  tag: ""
+imagePullSecrets: []
+initContainers: []
+nameOverride: ""
+nodeSelector: {}
+podSecurityContext: {}
+replicaCount: 1
+resources: {}
+securityContext: {}
+service:
+  port: 22
+  type: ClusterIP
+serviceAccount:
+  annotations: {}
+  create: true
+  name: null
+storage:
+  volumeMounts: []
+  volumes: []
+tolerations: []
+

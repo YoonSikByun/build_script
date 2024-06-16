@@ -59,7 +59,7 @@ data:
   basic_auth.ini: |-
     [mlflow]
     default_permission = NO_PERMISSIONS
-    database_uri = postgresql://mlflow:mlflow@192.168.64.1:30000/mlflow-auth
+    database_uri = postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow-auth
     admin_username = admin
     admin_password = admin
 
@@ -85,15 +85,25 @@ spec:
         - name: APP_NAME
           value: "mlflow-server"
         - name: MLFLOW_REGISTRY_URI
-          value : 'postgresql://mlflow:mlflow@192.168.64.1:30000/mlflow'
+          value : 'postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow'
         - name: MLFLOW_TRACKING_URI
-          value : 'postgresql://mlflow:mlflow@192.168.64.1:30000/mlflow'
+          value : 'postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow'
         - name: MLFLOW_AUTH_CONFIG_PATH
           value: "/opt/mlflow/.mlflow/basic_auth.ini"
+      command:
+        - mlflow
       args:
-        - bash
-        - -c
-        - mlflow server --workers 2 --host 0.0.0.0 --app-name basic-auth --backend-store-uri postgresql://mlflow:mlflow@192.168.64.1:30000/mlflow --default-artifact-root file:/opt/mlflow/mlruns
+        - server
+        - --host=0.0.0.0
+        - --app-name=basic-auth
+        - --workers=2
+        - --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow
+        - --default-artifact-root=file:/opt/mlflow/mlruns
+        - --serve-artifacts
+        # - --default-artifact-root=sftp://mlflow-artifacts:mlflow-artifacts@sftp-server.default.svc.cluster.local:22
+
+        # pod 터미너들에서 sftp 로그인 한번 하면 ~/.ssh/known_hosts 파일에 아래 내용이 생긴다.
+        # sftp-server.default.svc.cluster.local ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9dnFjN7obwHVn+1YUuJccYlk2hXggL0KG2bjHIqnh2
       ports:
         - name: mlflow-server
           containerPort: 5000
@@ -113,7 +123,6 @@ spec:
           mountPath: "/opt/mlflow/mlruns"
           subPath: mlflow/mlruns
           readOnly: false
-
   volumes:
     - name: mlflow-server-config
       configMap:
