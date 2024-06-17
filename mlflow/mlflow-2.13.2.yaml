@@ -77,7 +77,6 @@ spec:
     - name: mlflow-server
       image: mlstudio/mlflow2.13.2:latest
       imagePullPolicy: IfNotPresent
-
       workingDir: /opt/mlflow
       env:
         - name: APP_HOME
@@ -91,19 +90,20 @@ spec:
         - name: MLFLOW_AUTH_CONFIG_PATH
           value: "/opt/mlflow/.mlflow/basic_auth.ini"
       command:
-        - mlflow
-      args:
-        - server
-        - --host=0.0.0.0
-        - --app-name=basic-auth
-        - --workers=2
-        - --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow
-        - --default-artifact-root=file:/opt/mlflow/mlruns
-        - --serve-artifacts
+        ["/bin/sh"]
+      args: ["-c", "mkdir -p ~/.ssh && ssh-keyscan -t ed25519 sftp-server.default.svc.cluster.local >> ~/.ssh/known_hosts && mlflow server --host=0.0.0.0 --app-name=basic-auth --workers=2 --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow --serve-artifacts"]
+      # command:
+      #   - mlflow
+      # args:
+      #   - server
+      #   - --host=0.0.0.0
+      #   - --app-name=basic-auth
+      #   - --workers=2
+      #   - --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow
+      #   - --serve-artifacts
+        # - --default-artifact-root=file:/opt/mlflow/mlruns
         # - --default-artifact-root=sftp://mlflow-artifacts:mlflow-artifacts@sftp-server.default.svc.cluster.local:22
 
-        # pod 터미너들에서 sftp 로그인 한번 하면 ~/.ssh/known_hosts 파일에 아래 내용이 생긴다.
-        # sftp-server.default.svc.cluster.local ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9dnFjN7obwHVn+1YUuJccYlk2hXggL0KG2bjHIqnh2
       ports:
         - name: mlflow-server
           containerPort: 5000
@@ -123,6 +123,11 @@ spec:
           mountPath: "/opt/mlflow/mlruns"
           subPath: mlflow/mlruns
           readOnly: false
+  # initContainers:
+  #   - name: init-mlflow-server
+  #     image: mlstudio/mlflow2.13.2:latest
+  #     imagePullPolicy: IfNotPresent
+  #     command: ['sh', '-c', 'mkdir -p ~/.ssh;ssh-keyscan -t ed25519 sftp-server.default.svc.cluster.local >> ~/.ssh/known_hosts']
   volumes:
     - name: mlflow-server-config
       configMap:
