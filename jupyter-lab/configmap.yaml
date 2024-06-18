@@ -6,22 +6,6 @@ metadata:
     tier: mlstudio-config
     component: config
 data:
-  # These are system-specified config overrides.
-  mlstudio-config.json: |-
-    {
-      system-database : {
-        ip : '10.10.10.10',
-        port : 1000
-      }
-    }
-
-  mlstudio-config2.json: |-
-    {
-      system-database : {
-        ip : '10.10.10.10',
-        port : 1000
-      }
-    }
 
   jupyter_lab_config.py: |-
     import os
@@ -50,3 +34,41 @@ data:
     if os.getenv('CPU_LIMIT'):
       c.ResourceUseDisplay.cpu_limit = int(os.getenv('CPU_LIMIT'))
       c.ResourceUseDisplay.track_cpu_percent = True
+
+  # These are system-specified config overrides.
+  mlstudio-config.json: |-
+    {
+      "db" : {
+        "cluster" : {
+          "ip" : "apache-airflow-postgresql.default.svc.cluster.local",
+          "port" : 5432
+        },
+        "node" : {
+            "ip" : "127.0.0.1",
+            "port" : 30000
+        },
+        "user" : {
+          "mlflow" : {
+            "id" : "mlflow",
+            "password" : "mlflow"
+          }
+        },
+        "database" : {
+          "mlflow" : {
+            "tracking" : "mlflow",
+            "auth" : "mlflow-auth"
+          }
+        }
+      },
+      "mlflow" : {
+        "artifact_root" : "/opt/mlflow/.mlruns"
+      }
+    }
+
+  mlstudio-config2.json: |-
+    {
+      system-database : {
+        ip : '10.10.10.10',
+        port : 1000
+      }
+    }

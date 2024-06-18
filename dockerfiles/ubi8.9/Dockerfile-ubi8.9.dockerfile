@@ -14,15 +14,20 @@ RUN groupadd --gid $USER_GID $USERNAME \
     #
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
     && yum -y --nobest update \
-    && yum install -y sudo procps-ng iputils git \
+    && yum install -y sudo procps-ng iputils git openssh-server && ssh-keygen -A \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && rm -fr /etc/ssh/sshd_config
 
-COPY ./config/* /home/$USERNAME/
+COPY ./config/bash/* /home/$USERNAME/
+COPY ./config/ssh/* /etc/ssh/
+
 RUN chown -R $USER_GID:$USER_UID /home/$USERNAME/
 
-RUN echo "$USERNAME:mlstudio" | chpasswd
-RUN echo "root:mlstudio" | chpasswd
+RUN echo "$USERNAME:mlstudio" | chpasswd && echo "root:mlstudio" | chpasswd
 
 # Set the default CMD to print the usage of the language image.
 CMD $STI_SCRIPTS_PATH/usage
+
+# Execute ssh daemon
+# /usr/sbin/sshd -D

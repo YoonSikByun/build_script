@@ -91,7 +91,7 @@ spec:
           value: "/opt/mlflow/.mlflow/basic_auth.ini"
       command:
         ["/bin/sh"]
-      args: ["-c", "mkdir -p ~/.ssh && ssh-keyscan -t ed25519 sftp-server.default.svc.cluster.local >> ~/.ssh/known_hosts && mlflow server --host=0.0.0.0 --app-name=basic-auth --workers=2 --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow --serve-artifacts"]
+      args: ["-c", "mkdir -p ~/.ssh;ssh-keyscan -t ed25519 sftp-server.default.svc.cluster.local >> ~/.ssh/known_hosts; mlflow server --host=0.0.0.0 --app-name=basic-auth --workers=2 --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow --serve-artifacts"]
       # command:
       #   - mlflow
       # args:

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: jupyter-lab-config
+  name: mlstudio-config
   labels:
-    app : jupyter-lab
+    app : mlstudio
 
 data:
 
