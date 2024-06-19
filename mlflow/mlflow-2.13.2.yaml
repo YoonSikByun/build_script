@@ -120,7 +120,7 @@ spec:
           subPath: basic_auth.ini
           readOnly: false
         - name: host-mount
-          mountPath: "/opt/mlflow/mlruns"
+          mountPath: "/opt/mlflow/.mlruns"
           subPath: mlflow/mlruns
           readOnly: false
   # initContainers:

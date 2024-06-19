@@ -1,6 +1,41 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: jupyter-lab-svc
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: port8888
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  selector:
+    app: jupyter-lab
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+  name: jupyter-lab-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /jupyter-lab
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: jupyter-lab-svc
+            port:
+              number: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: jupyter-lab-sshd-svc-nodeport
   namespace: default
 spec:
@@ -45,6 +80,8 @@ spec:
         - -c
         - echo mlstudio | sudo -S /usr/sbin/sshd -D
       ports:
+        - name: jupyter-lab
+          containerPort: 8888
         - name: sshd-port
           containerPort: 22
       resources: {}
@@ -84,7 +121,7 @@ spec:
           subPath: mlstudio/interface
           readOnly: false
         - name: host-mount
-          mountPath: "/opt/mlflow/mlruns"
+          mountPath: "/opt/mlflow/.mlruns"
           subPath: mlflow/mlruns
           readOnly: false
 
