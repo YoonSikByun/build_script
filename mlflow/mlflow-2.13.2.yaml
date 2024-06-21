@@ -89,19 +89,19 @@ spec:
           value : 'postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow'
         - name: MLFLOW_AUTH_CONFIG_PATH
           value: "/opt/mlflow/.mlflow/basic_auth.ini"
-      command:
-        ["/bin/sh"]
-      args: ["-c", "mkdir -p ~/.ssh;ssh-keyscan -t ed25519 sftp-server.default.svc.cluster.local >> ~/.ssh/known_hosts; mlflow server --host=0.0.0.0 --app-name=basic-auth --workers=2 --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow --serve-artifacts"]
       # command:
-      #   - mlflow
-      # args:
-      #   - server
-      #   - --host=0.0.0.0
-      #   - --app-name=basic-auth
-      #   - --workers=2
-      #   - --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow
-      #   - --serve-artifacts
-        # - --default-artifact-root=file:/opt/mlflow/mlruns
+      #   ["/bin/sh"]
+      # args: ["-c", "mkdir -p ~/.ssh;ssh-keyscan -t ed25519 sftp-server.default.svc.cluster.local >> ~/.ssh/known_hosts; mlflow server --host=0.0.0.0 --app-name=basic-auth --workers=2 --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow --serve-artifacts"]
+      command:
+        - mlflow
+      args:
+        - server
+        - --host=0.0.0.0
+        - --app-name=basic-auth
+        - --workers=2
+        - --backend-store-uri=postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow
+        - --serve-artifacts
+        - --default-artifact-root=file:/opt/mlflow/.mlruns
         # - --default-artifact-root=sftp://mlflow-artifacts:mlflow-artifacts@sftp-server.default.svc.cluster.local:22
 
       ports:
