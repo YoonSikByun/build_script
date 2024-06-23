@@ -61,14 +61,7 @@ data:
         }
       },
       "mlflow" : {
-        "artifact_root" : "/opt/mlflow/.mlruns"
-      }
-    }
-
-  mlstudio-config2.json: |-
-    {
-      system-database : {
-        ip : '10.10.10.10',
-        port : 1000
+        "artifact_root" : "/opt/mlflow/.mlruns",
+        "server_url" : "http://mlflow-server-svc.default.svc.cluster.local:5000"
       }
     }

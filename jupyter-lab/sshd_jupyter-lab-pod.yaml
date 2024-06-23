@@ -78,7 +78,7 @@ spec:
       args:
         - bash
         - -c
-        - echo mlstudio | sudo -S /usr/sbin/sshd -D
+        - echo mlstudio | sudo -S /usr/sbin/sshd -D && jupyter lab --no-browser --ip=0.0.0.0 --allow-root
       ports:
         - name: jupyter-lab
           containerPort: 8888
@@ -99,10 +99,6 @@ spec:
         - name: mlstudio-config
           mountPath: /opt/mlstudio/config/mlstudio-config.json
           subPath: mlstudio-config.json
-          readOnly: true
-        - name: mlstudio-config
-          mountPath: /opt/mlstudio/config/mlstudio-config2.json
-          subPath: mlstudio-config2.json
           readOnly: false
         - name: host-mount
           mountPath: "/opt/mlstudio/piplines"
