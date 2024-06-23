@@ -13,5 +13,8 @@ kubectl patch pvc data-apache-airflow-postgresql-0 -p '{"metadata": {"finalizers
 kubectl delete pvc pvc-host-nfs --grace-period=0 --force
 kubectl patch pvc pvc-host-nfs -p '{"metadata": {"finalizers": null}}'
 
+kubectl delete pvc pvc-host-nfs --grace-period=0 --force
+kubectl patch pvc pvc-host-nfs -p '{"metadata": {"finalizers": null}}'
+
 kubectl delete pv pv-host-nfs --grace-period=0 --force
 kubectl patch pv pv-host-nfs -p '{"metadata": {"finalizers": null}}'
