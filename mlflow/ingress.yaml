@@ -1,18 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  # annotations:
-  #   # nginx.ingress.kubernetes.io/proxy-body-size: 10m
   annotations:
       kubernetes.io/ingress.class: "nginx"
-      # nginx.ingress.kubernetes.io/enable-cors: "true"
-      # nginx.ingress.kubernetes.io/cors-allow-origin: "*"
-      # nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
-      # nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,X-LANG,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,X-Api-Key,X-Device-Id,Access-Control-Allow-Origin"
-      # nginx.ingress.kubernetes.io/configuration-snippet: |
-      #   if ($http_origin ~* "^http://localhost\:(30002|30022)$") {
-      #     add_header Access-Control-Allow-Origin "$http_origin";
-      #   }
   name: mlflow-server-ingress
   namespace: default
 spec:
@@ -20,11 +10,8 @@ spec:
   rules:
   - http:
       paths:
-      # - path: /mlflow(/|$)(.*)
       - path: /mlflow
-      # - path: /
         pathType: Prefix
-        # pathType: ImplementationSpecific
         backend:
           service:
             name: mlflow-server-svc
