@@ -16,29 +16,52 @@ http://localhost:32050/ajax-api/2.0/mlflow/runs/search
 
 http://admin:admin@localhost:30002/mlflow
 
+http://admin:admin@localhost:30002/mlflow-ui/
 
 
-/usr/local/lib/python3.10/site-packages/mlflow/server/auth
+vi /usr/local/lib/python3.10/site-packages/mlflow/server/auth/__init__.py
+
+http://localhost:30002/mlflow?login_username=admin&login_password=admin
 
 
+import logging
+import base64
+logging.basicConfig(filename='/opt/mlflow/.mlruns/mlflow.log', level=logging.DEBUG)
 
 def authenticate_request_basic_auth() -> Union[Authorization, Response]:
     """Authenticate the request using basic auth."""
     username = ''
     password = ''
-        
+
+    logging.debug(f'request.authorization : {request.authorization}')
+    logging.debug(f'type(request.authorization) : {type(request.authorization)}')
+
     if request.authorization is None:
         username = request.args.get('login_username')
         password = request.args.get('login_password')
+        logging.debug(f'-------- username : [{username}]')
+        logging.debug(f'-------- password : [{password}]')
         if not username and not password:
             return make_basic_auth_response()
-        temp_auth = Authorization(auth_type='basic', data={'username': username, 'password' : password}, token='Basic YWRtaW46YWRtaW4=')
+
         if store.authenticate_user(username, password):
-            return temp_auth
+            token = f'{username}:{password}'
+            logging.debug(f'----- token : {token}')
+            # token = base64.encodebytes(b"This has base64 padding").decode("utf-8").strip()
+            token = bytes(token, 'utf-8')
+            token = base64.encodebytes(token).decode("utf-8")
+            auth = Authorization.from_header(f"Basic {token}")
+            logging.debug(f'type(auth) : {type(auth)}')
+            logging.debug(f'auth : {auth}')
+            logging.debug(f'auth.username : {auth.username}')
+            logging.debug(f'auth.password : {auth.password}')
+            #return 'Basic YWRtaW46YWRtaW4='
+            request.authorization = auth
+            return auth
         else:
             # let user attempt login again
             return make_basic_auth_response()
-        
+
     username = request.authorization.username
     password = request.authorization.password
 
