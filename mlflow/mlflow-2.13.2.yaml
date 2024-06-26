@@ -12,7 +12,7 @@ data:
     database_uri = postgresql://mlflow:mlflow@apache-airflow-postgresql.default.svc.cluster.local:5432/mlflow-auth
     admin_username = admin
     admin_password = admin
-    authorization_function = mlflow.server.auth:authenticate_request_basic_auth
+    authorization_function = mlflow_custom:authenticate_request_auth
 
 ---
 apiVersion: v1
