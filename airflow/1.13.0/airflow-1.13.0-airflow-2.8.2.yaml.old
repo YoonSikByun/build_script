@@ -1,27 +1,4 @@
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: apache-airflow-webserver-nodeport
-  labels:
-    tier: airflow
-    component: webserver
-    release: apache-airflow
-    chart: "airflow-1.13.0"
-    heritage: Helm
-spec:
-  type: NodePort
-  selector:
-    tier: airflow
-    component: webserver
-    release: apache-airflow
-  ports:
-  
-    -
-      name: airflow-ui
-      port: 8080
-      nodePort: 30100
----
 # Source: airflow/templates/jobs/create-user-job-serviceaccount.yaml
 ###########################################
 ## Airflow Create User Job ServiceAccount
@@ -169,7 +146,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  webserver-secret-key: "WW1kWllsZEVWVnBPZW1GNGRraDNlRnBvTVhOUFdHNUpORkUwY0ZFM2RGbz0="
+  webserver-secret-key: "Y1ZGR1dFSlhSa3BTV21saFdtZzRaMk40V1dWWlpVMHpTMVpoY2pOdFF6RT0="
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
 ################################
@@ -192,7 +169,7 @@ data:
     auth_backend = airflow.api.auth.backend.basic_auth
     
     [celery]
-    flower_url_prefix = /airflow/flower
+    flower_url_prefix = 
     worker_concurrency = 16
     
     [celery_kubernetes_executor]
@@ -264,7 +241,6 @@ data:
     [webserver]
     enable_proxy_fix = True
     rbac = True
-    base_url = http://localhost:8080/airflow
     
   airflow_local_settings.py: |-
     
@@ -281,103 +257,143 @@ data:
         html=True,
       )
     ]
-  pod_template_file.yaml: |-
-    
-    ---
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: placeholder-name
-      labels:
-        tier: airflow
-        component: worker
-        release: apache-airflow
-    spec:
-      containers:
-        - envFrom:      
-            []
-          env:
-            - name: AIRFLOW__CORE__EXECUTOR
-              value: LocalExecutor      
-            # Hard Coded Airflow Envs
-            - name: AIRFLOW__CORE__FERNET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-fernet-key
-                  key: fernet-key
-            - name: AIRFLOW_HOME
-              value: /opt/airflow
-            # For Airflow <2.3, backward compatibility; moved to [database] in 2.3
-            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-metadata
-                  key: connection
-            - name: AIRFLOW_CONN_AIRFLOW_DB
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-metadata
-                  key: connection
-            - name: AIRFLOW__WEBSERVER__SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: apache-airflow-webserver-secret-key
-                  key: webserver-secret-key      
-            # Dynamically created environment variables
-            # Dynamically created secret envs
+
+  # pod_template_file.yaml: |-
+
+  #   ---
+  #   apiVersion: v1
+  #   kind: Pod
+  #   metadata:
+  #     name: placeholder-name
+  #     labels:
+  #       tier: airflow
+  #       component: worker
+  #       release: apache-airflow
+  #   spec:
+  #     containers:
+  #       - envFrom:      
+  #           []
+  #         env:
+  #           - name: AIRFLOW__CORE__EXECUTOR
+  #             value: LocalExecutor      
+  #           # Hard Coded Airflow Envs
+  #           - name: AIRFLOW__CORE__FERNET_KEY
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-fernet-key
+  #                 key: fernet-key
+  #           - name: AIRFLOW_HOME
+  #             value: /opt/airflow
+  #           # For Airflow <2.3, backward compatibility; moved to [database] in 2.3
+  #           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-metadata
+  #                 key: connection
+  #           - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-metadata
+  #                 key: connection
+  #           - name: AIRFLOW_CONN_AIRFLOW_DB
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-metadata
+  #                 key: connection
+  #           - name: AIRFLOW__WEBSERVER__SECRET_KEY
+  #             valueFrom:
+  #               secretKeyRef:
+  #                 name: apache-airflow-webserver-secret-key
+  #                 key: webserver-secret-key      
+  #           # Dynamically created environment variables
+  #           # Dynamically created secret envs
             
-            # Extra env      
-          image: apache/airflow:2.8.2
-          imagePullPolicy: IfNotPresent
-          securityContext: 
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-          name: base
-          resources:
-            {}
-          volumeMounts:
-            - name: host-mount
-              mountPath: "/opt/airflow/logs"
-              subPath: airflow/logs
-              mountPath: "/opt/airflow/airflow.cfg"
-              subPath: airflow.cfg
-              readOnly: true
-            - name: config
-              mountPath: "/opt/airflow/config/airflow_local_settings.py"
-              subPath: airflow_local_settings.py
-              readOnly: true
-            - name: host-mount
-              mountPath: "/opt/airflow/dags"
-              subPath: airflow/dags
-              readOnly: False
-      restartPolicy: Never
-      securityContext: 
-        runAsUser: 50000
-        fsGroup: 0
-      nodeSelector:
-        {}
-      affinity:
-        {}
-      terminationGracePeriodSeconds: 600
-      tolerations:
-        []
-      topologySpreadConstraints:
-        []
-      serviceAccountName: apache-airflow-worker
-      volumes:
-      - name: host-mount
-        persistentVolumeClaim:
-          claimName: pvc-host
-      - configMap:
-          name: apache-airflow-config
-        name: config
+  #           # Extra env      
+  #         image: apache/airflow:2.8.2
+  #         imagePullPolicy: IfNotPresent
+  #         securityContext: 
+  #           allowPrivilegeEscalation: false
+  #           capabilities:
+  #             drop:
+  #               - ALL
+  #         name: base
+  #         resources:
+  #           {}
+  #         volumeMounts:
+  #           - name: host-mount
+  #             mountPath: "/opt/airflow/logs"
+  #             subPath: airflow/logs
+  #           - name: config
+  #             mountPath: "/opt/airflow/airflow.cfg"
+  #             subPath: airflow.cfg
+  #             readOnly: true
+  #           - name: config
+  #             mountPath: "/opt/airflow/config/airflow_local_settings.py"
+  #             subPath: airflow_local_settings.py
+  #             readOnly: true
+  #           - name: host-mount
+  #             mountPath: /opt/airflow/dags
+  #             subPath: airflow/dags
+  #             readOnly: False
+  #     restartPolicy: Never
+  #     securityContext: 
+  #       runAsUser: 50000
+  #       fsGroup: 0
+  #     nodeSelector:
+  #       {}
+  #     affinity:
+  #       {}
+  #     terminationGracePeriodSeconds: 600
+  #     tolerations:
+  #       []
+  #     topologySpreadConstraints:
+  #       []
+  #     serviceAccountName: apache-airflow-worker
+  #     volumes:
+  #       - name: host-mount
+  #         persistentVolumeClaim:
+  #           claimName: pvc-host
+  #       - name: config
+  #         configMap:
+  #           name: apache-airflow-config
+
+  # jupyterlab.yaml: |-
+
+  #   ---
+  #   apiVersion: v1
+  #   kind: Pod
+  #   metadata:
+  #     name: jupyter-lab
+  #     labels:
+  #       tier: airflow
+  #       component: worker
+  #       release: mlstudio
+  #   spec:
+  #     restartPolicy: Never
+  #     containers:
+  #       - name: jupyter-lab
+  #         image: mlstudio/jupyterlab4.1.8:latest
+  #         imagePullPolicy: IfNotPresent
+  #         workingDir: /opt/mlstudio/source
+  #         args: []
+  #         command: []
+  #         resources: {}
+  #         volumeMounts:
+  #           - name: config
+  #             mountPath: /opt/mlstudio/config/mlstudio-config.json
+  #             subPath: mlstudio-config.json
+  #             readOnly: true
+  #           - name: config
+  #             mountPath: /opt/mlstudio/config/mlstudio-config2.json
+  #             subPath: mlstudio-config2.json
+  #             readOnly: true
+  #     volumes:
+  #       - name: host-mount
+  #         persistentVolumeClaim:
+  #           claimName: pvc-host
+  #       - name: config
+  #         configMap:
+  #           name: mlstudio-config
 ---
 # Source: airflow/templates/configmaps/statsd-configmap.yaml
 ################################
@@ -671,6 +687,32 @@ spec:
     app.kubernetes.io/name: postgresql
     app.kubernetes.io/component: primary
 ---
+# Source: airflow/charts/postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: apache-airflow-postgresql-nodeport
+  namespace: "default"
+  labels:
+    app.kubernetes.io/instance: apache-airflow
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 16.1.0
+    helm.sh/chart: postgresql-13.2.24
+    app.kubernetes.io/component: primary
+spec:
+  type: NodePort
+  sessionAffinity: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: 30000
+  selector:
+    app.kubernetes.io/instance: apache-airflow
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: primary
+---
 # Source: airflow/templates/statsd/statsd-service.yaml
 ################################
 ## Airflow StatsD Service
@@ -730,6 +772,29 @@ spec:
       name: airflow-ui
       port: 8080
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apache-airflow-webserver-nodeport
+  labels:
+    tier: airflow
+    component: webserver
+    release: apache-airflow
+    chart: "airflow-1.13.0"
+    heritage: Helm
+spec:
+  type: NodePort
+  selector:
+    tier: airflow
+    component: webserver
+    release: apache-airflow
+  ports:
+  
+    -
+      name: airflow-ui
+      port: 8080
+      nodePort: 30100
+---
 # Source: airflow/templates/scheduler/scheduler-deployment.yaml
 ################################
 ## Airflow Scheduler Deployment/StatefulSet
@@ -768,7 +833,7 @@ spec:
         checksum/metadata-secret: 4a22279a7d4e753a079c8b33619352ecb517c4c7fd40c6bf25a340f6fc356c4b
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 4a29d87886c10f174b22e49dcef7bf11b678e4e325ec15f4f5ef9c600d9acc33
+        checksum/airflow-config: ff8bad064bdd8b4d6d751cd291c8fb34c037d54079b53418857eb170075eef38
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -972,6 +1037,8 @@ spec:
             - name: host-mount
               mountPath: "/opt/airflow/logs"
               subPath: airflow/logs
+            # - name: logs
+            #   mountPath: "/opt/airflow/logs"
       volumes:
         - name: config
           configMap:
@@ -1110,8 +1177,8 @@ spec:
       annotations:
         checksum/metadata-secret: 4a22279a7d4e753a079c8b33619352ecb517c4c7fd40c6bf25a340f6fc356c4b
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/webserver-secret-key: 1d25e4ab0231cea2e71980dd7d4b4aa75bc39b781b0117c86c0397b84ebbc5b0
-        checksum/airflow-config: 4a29d87886c10f174b22e49dcef7bf11b678e4e325ec15f4f5ef9c600d9acc33
+        checksum/webserver-secret-key: 72acfa5fb836b45c1c03cd568f4be768f9420f02543d4733445fc6da2d39f555
+        checksum/airflow-config: ff8bad064bdd8b4d6d751cd291c8fb34c037d54079b53418857eb170075eef38
         checksum/webserver-config: 2f3fdfd294a37094d2abee43b2b09888a5c195ee03414996bf99a4681658af94
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
@@ -1225,6 +1292,8 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            # - name: logs
+            #   mountPath: "/opt/airflow/logs"
             - name: host-mount
               mountPath: "/opt/airflow/logs"
               subPath: airflow/logs
@@ -1233,7 +1302,7 @@ spec:
               containerPort: 8080
           livenessProbe:
             httpGet:
-              path: /airflow/health
+              path: /health
               port: 8080
               scheme: HTTP
             initialDelaySeconds: 15
@@ -1242,7 +1311,7 @@ spec:
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /airflow/health
+              path: /health
               port: 8080
               scheme: HTTP
             initialDelaySeconds: 15
@@ -1251,7 +1320,7 @@ spec:
             periodSeconds: 10
           startupProbe:
             httpGet:
-              path: /airflow/health
+              path: /health
               port: 8080
               scheme: HTTP
             timeoutSeconds: 20
@@ -1272,10 +1341,6 @@ spec:
                   key: fernet-key
             - name: AIRFLOW_HOME
               value: /opt/airflow
-            # - name: AIRFLOW__WEBSERVER__BASE_URL
-            #   value: http://localhost:8080/airflow
-            # - name: AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX
-            #   value: "True"
             # For Airflow <2.3, backward compatibility; moved to [database] in 2.3
             - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
               valueFrom:
@@ -1304,6 +1369,9 @@ spec:
         - name: host-mount
           persistentVolumeClaim:
             claimName: pvc-host
+        # - name: logs
+        #   persistentVolumeClaim:
+        #     claimName: pvc-host-airflow-logs
 ---
 # Source: airflow/charts/postgresql/templates/primary/statefulset.yaml
 apiVersion: apps/v1
@@ -1698,6 +1766,11 @@ spec:
 ## Airflow Triggerer ServiceAccount
 #################################
 ---
+# Source: airflow/templates/webserver/webserver-ingress.yaml
+################################
+## Airflow Webserver Ingress
+#################################
+---
 # Source: airflow/templates/webserver/webserver-networkpolicy.yaml
 ################################
 ## Airflow Webserver NetworkPolicy
@@ -1752,7 +1825,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "Y21zM2RYa3piV3BWYlVkcWF6aERNV0ZZUVU1NlNVVTJhbVZXYkdoM01qZz0="
+  fernet-key: "YmtsU2RVWTVVVUZDVm01TVIwaHJlR1F4VUhNd1JXeFlRekk1VTNwNFRrcz0="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 # We will create these secrets (if necessary) _even if_ we aren't
@@ -1782,7 +1855,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "cGs4SDJFMnloMg=="
+  password: "VXNVQklrcFVCMg=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -1804,7 +1877,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86cGs4SDJFMnloMkBhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
+  connection: "cmVkaXM6Ly86VXNVQklrcFVCMkBhcGFjaGUtYWlyZmxvdy1yZWRpczo2Mzc5LzA="
 ---
 # Source: airflow/templates/jobs/create-user-job.yaml
 ################################
