@@ -2365,6 +2365,7 @@ config:
     # For Airflow 1.10
     rbac: 'True'
     base_url: 'http://localhost:8080/airflow'
+    # auth_backend: 'mypackage.auth'
   celery:
     flower_url_prefix: '{{ ternary "" .Values.ingress.flower.path (eq .Values.ingress.flower.path "/") }}'
     worker_concurrency: 16

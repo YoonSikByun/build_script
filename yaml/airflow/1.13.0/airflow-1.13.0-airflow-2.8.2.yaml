@@ -265,6 +265,7 @@ data:
     enable_proxy_fix = True
     rbac = True
     base_url = http://localhost:8080/airflow
+    ;auth_backend = mypackage.auth
     
   airflow_local_settings.py: |-
     
