@@ -66,7 +66,7 @@ spec:
         - bash
         - -c
         # - jupyter lab --port=8888 --no-browser --ip=0.0.0.0 --allow-root --LabApp.token=''
-        - jupyter lab --no-browser --ip=0.0.0.0 --allow-root
+        - jupyter lab --no-browser  --port=8888 --ip=0.0.0.0 --allow-root
       ports:
         - name: jupyter-lab
           containerPort: 8888

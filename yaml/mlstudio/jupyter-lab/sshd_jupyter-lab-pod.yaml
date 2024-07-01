@@ -78,7 +78,7 @@ spec:
       args:
         - bash
         - -c
-        - echo mlstudio | sudo -S /usr/sbin/sshd -D && jupyter lab --no-browser --ip=0.0.0.0 --allow-root
+        - echo mlstudio | sudo -S /usr/sbin/sshd -D
       ports:
         - name: jupyter-lab
           containerPort: 8888
